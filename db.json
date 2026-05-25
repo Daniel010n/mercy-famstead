@@ -1,0 +1,181 @@
+{
+  "products": [
+    {
+      "id": "prod-pigs",
+      "name": "Mercy Farm Premium Swine",
+      "category": "Pigs",
+      "description": "Locally crossed, highly healthy organic pigs raised on balanced grain rations. Lean meat, superior development.",
+      "price": 180000,
+      "unit": "head",
+      "stock": 24,
+      "available": true,
+      "imageUrl": "/src/assets/images/mercy_pigs_pen_1779313656428.png"
+    },
+    {
+      "id": "prod-eggs",
+      "name": "Fresh Golden Farm Eggs",
+      "category": "Eggs",
+      "description": "Sanitized, freshly sorted organic eggs with golden-rich yolks. Direct from our laying bays daily.",
+      "price": 4500,
+      "unit": "crate",
+      "stock": 150,
+      "available": true,
+      "imageUrl": "https://images.unsplash.com/photo-1506976785307-8732e854ad03?auto=format&fit=crop&q=80&w=600"
+    },
+    {
+      "id": "prod-layers",
+      "name": "Fully Vaccinated Point of Lay (Layers)",
+      "category": "Layers",
+      "description": "Productive brown hens prepared for egg production. Fully vaccinated, disease-free, high laying rate.",
+      "price": 3800,
+      "unit": "head",
+      "stock": 220,
+      "available": true,
+      "imageUrl": "https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?auto=format&fit=crop&q=80&w=600"
+    },
+    {
+      "id": "prod-fish",
+      "name": "Fresh Table-Size Catfish",
+      "category": "Fish",
+      "description": "Grown in continuous aeration ponds. High proteins, extremely sweet taste, caught fresh on pickup order.",
+      "price": 2500,
+      "unit": "kg",
+      "stock": 450,
+      "available": true,
+      "imageUrl": "/src/assets/images/mercy_catfish_1779401143271.png"
+    },
+    {
+      "id": "prod-broilers",
+      "name": "Grown Broiler Meat Birds",
+      "category": "Broilers",
+      "description": "Heavyweight meat-type chickens raised organically with natural feeds. Tender, large size, perfect for culinary usage.",
+      "price": 4500,
+      "unit": "head",
+      "stock": 180,
+      "available": true,
+      "imageUrl": "/src/assets/images/mercy_broiler_chickens_1779313814744.png"
+    }
+  ],
+  "orders": [],
+  "chats": [
+    {
+      "id": "sid-dvcsxqkzw",
+      "customerName": "david",
+      "customerEmail": "",
+      "customerPhone": "",
+      "messages": [
+        {
+          "id": "msg-751awzfs",
+          "sender": "user",
+          "text": "hello",
+          "timestamp": "2026-05-21T21:57:40.134Z"
+        },
+        {
+          "id": "msg-bzejte8q",
+          "sender": "bot",
+          "text": "Ẹ kààbọ̀! Welcome to Mercy Farmstead! 🌾 \n\nI am your humble farm support specialist, absolutely delighted to serve you today. We thank God for a bountiful season, and we are ready to bring the very best of our farm directly to you! \n\nHere is what we have fresh and available in our inventory today:\n*   **Fresh Golden Farm Eggs**: ₦4,500 per crate *(150 crates available)*\n*   **Fully Vaccinated Point of Lay (Layers)**: ₦3,800 per head *(220 units available)*\n*   **Fresh Table-Size Catfish**: ₦2,500 per kg *(450 kg available)*\n*   **Grown Broiler Meat Birds**: ₦4,500 per head *(180 units available)*\n*   **Mercy Farm Premium Swine (Pigs)**: ₦180,000 per head *(24 units available)*\n\n**How to Place Your Order:**\n1. Kindly head over to our elegant **\"Catalog\"** tab to select your quantities and enter your delivery details.\n2. Make your direct bank transfer to our secure accounts:\n   * **UBA**: 1030248864 (Mercy Farmstead)\n   * **Moniepoint MFB**: 6213477162 (Mercy Farmstead)\n3. Paste your payment verification screenshot right here in our chat! \n\nOnce received, our managers will immediately verify your payment and map out your delivery coordinates directly to your doorstep. \n\nHow may we serve you today, sa/ma?",
+          "timestamp": "2026-05-21T21:57:47.155Z"
+        },
+        {
+          "id": "msg-8ab8xbwg",
+          "sender": "user",
+          "text": "hello",
+          "timestamp": "2026-05-21T22:00:07.787Z"
+        },
+        {
+          "id": "msg-2yo1w7xn",
+          "sender": "bot",
+          "text": "Ẹ kààbọ̀! Welcome! How can we help you secure your fresh farm eggs (₦4,500/crate) or table-size catfish (₦2,500/kg) today?",
+          "timestamp": "2026-05-21T22:00:10.852Z"
+        },
+        {
+          "id": "msg-8clbw99r",
+          "sender": "user",
+          "text": "What is the current price and stock level of crate eggs?",
+          "timestamp": "2026-05-21T22:00:18.922Z"
+        },
+        {
+          "id": "msg-1mxjhcca",
+          "sender": "bot",
+          "text": "Ẹ kààbọ̀! Our Fresh Golden Farm Eggs are ₦4,500 per crate, with 150 crates currently available. You can easily book your order using our \"Catalog\" tab and make payment to our UBA or Moniepoint accounts!",
+          "timestamp": "2026-05-21T22:00:21.646Z"
+        }
+      ],
+      "lastMessageAt": "2026-05-21T22:00:21.646Z",
+      "unreadByAdmin": true
+    }
+  ],
+  "announcements": [
+    {
+      "id": "ann-1",
+      "title": "Welcome to Mercy Farmstead Online",
+      "content": "We are proud to introduce our active digital catalogue and livestock reservation platform. Secure fresh, sustainably raised farm produce directly from No25, TEMIDIRE AJAGBA WAKAJAYE, IBADAN, BESIDE BOLUWATIFE MATERNITY, OYO STATE, NIGERIA.",
+      "type": "news",
+      "createdAt": "2026-05-20T21:38:00.751Z"
+    },
+    {
+      "id": "ann-2",
+      "title": "New Bio-Secured Swine Stock Open",
+      "content": "A healthy lineage of premium pigs has reached ideal weight benchmarks and is now open for bookings. Excellent bone structure and pure feed training.",
+      "type": "arrival",
+      "createdAt": "2026-05-20T21:38:00.752Z"
+    }
+  ],
+  "messages": [],
+  "emails": [
+    {
+      "id": "email-1kz7jgfl2",
+      "to": "mercyfarms01@gmail.com",
+      "subject": "Chatbot Alert: Active customer chat - david",
+      "body": "\nCustomer \"david\" (no phone / no email) is conversing with the Mercy Assistant.\n\nLast User Query: \"hello\"\nAssistant Reply: \"Ẹ kààbọ̀! Welcome to Mercy Farmstead! 🌾 \n\nI am your humble farm support specialist, absolutely delighted to serve you today. We thank God for a bountiful season, and we are ready to bring the very best of our farm directly to you! \n\nHere is what we have fresh and available in our inventory today:\n*   **Fresh Golden Farm Eggs**: ₦4,500 per crate *(150 crates available)*\n*   **Fully Vaccinated Point of Lay (Layers)**: ₦3,800 per head *(220 units available)*\n*   **Fresh Table-Size Catfish**: ₦2,500 per kg *(450 kg available)*\n*   **Grown Broiler Meat Birds**: ₦4,500 per head *(180 units available)*\n*   **Mercy Farm Premium Swine (Pigs)**: ₦180,000 per head *(24 units available)*\n\n**How to Place Your Order:**\n1. Kindly head over to our elegant **\"Catalog\"** tab to select your quantities and enter your delivery details.\n2. Make your direct bank transfer to our secure accounts:\n   * **UBA**: 1030248864 (Mercy Farmstead)\n   * **Moniepoint MFB**: 6213477162 (Mercy Farmstead)\n3. Paste your payment verification screenshot right here in our chat! \n\nOnce received, our managers will immediately verify your payment and map out your delivery coordinates directly to your doorstep. \n\nHow may we serve you today, sa/ma?\"\n\nGo to your Admin Dashboard Chat panel to intercept and reply manually to customer chats.\n  ",
+      "timestamp": "2026-05-21T21:57:47.156Z"
+    },
+    {
+      "id": "email-icgxyct68",
+      "to": "mercyfarms01@gmail.com",
+      "subject": "Chatbot Alert: Active customer chat - david",
+      "body": "\nCustomer \"david\" (no phone / no email) is conversing with the Mercy Assistant.\n\nLast User Query: \"hello\"\nAssistant Reply: \"Ẹ kààbọ̀! Welcome! How can we help you secure your fresh farm eggs (₦4,500/crate) or table-size catfish (₦2,500/kg) today?\"\n\nGo to your Admin Dashboard Chat panel to intercept and reply manually to customer chats.\n  ",
+      "timestamp": "2026-05-21T22:00:10.853Z"
+    },
+    {
+      "id": "email-dwchdzmwz",
+      "to": "mercyfarms01@gmail.com",
+      "subject": "Chatbot Alert: Active customer chat - david",
+      "body": "\nCustomer \"david\" (no phone / no email) is conversing with the Mercy Assistant.\n\nLast User Query: \"What is the current price and stock level of crate eggs?\"\nAssistant Reply: \"Ẹ kààbọ̀! Our Fresh Golden Farm Eggs are ₦4,500 per crate, with 150 crates currently available. You can easily book your order using our \"Catalog\" tab and make payment to our UBA or Moniepoint accounts!\"\n\nGo to your Admin Dashboard Chat panel to intercept and reply manually to customer chats.\n  ",
+      "timestamp": "2026-05-21T22:00:21.646Z"
+    }
+  ],
+  "adminPasscode": "mercyadmin",
+  "notifications": [
+    {
+      "id": "notif-hv4ty72g",
+      "title": "Active Chat Session 💬",
+      "message": "Customer \"david\" sent chat: \"What is the current price and stock level of crate...\"",
+      "type": "general",
+      "targetUser": "admin",
+      "referenceId": "sid-dvcsxqkzw",
+      "read": false,
+      "createdAt": "2026-05-21T22:00:21.646Z"
+    },
+    {
+      "id": "notif-7u2dq13p",
+      "title": "Active Chat Session 💬",
+      "message": "Customer \"david\" sent chat: \"hello\"",
+      "type": "general",
+      "targetUser": "admin",
+      "referenceId": "sid-dvcsxqkzw",
+      "read": false,
+      "createdAt": "2026-05-21T22:00:10.853Z"
+    },
+    {
+      "id": "notif-3uj6e7ew",
+      "title": "Active Chat Session 💬",
+      "message": "Customer \"david\" sent chat: \"hello\"",
+      "type": "general",
+      "targetUser": "admin",
+      "referenceId": "sid-dvcsxqkzw",
+      "read": false,
+      "createdAt": "2026-05-21T21:57:47.156Z"
+    }
+  ]
+}

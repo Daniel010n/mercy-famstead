@@ -1,0 +1,6 @@
+{
+  "name": "Mercy Farmstead",
+  "description": "Modern agricultural farm website and secure admin dashboard for Mercy Farmstead, featuring product catalogs, orders, payment uploads, and an AI customer assistant.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

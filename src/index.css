@@ -1,0 +1,283 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+/* Custom visual scrollbar modifiers */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(16, 185, 129, 0.2);
+  border-radius: 99px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(16, 185, 129, 0.4);
+}
+
+/* Custom marquee keyframe movements */
+@keyframes marquee {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  width: max-content;
+  display: flex;
+  animation: marquee 35s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+/* ==========================================================================
+   LATE-NIGHT FARMING DARK MODE INTEGRATION
+   ========================================================================== */
+.dark {
+  color-scheme: dark;
+}
+
+.dark body,
+.dark #mercy-farmstead-app,
+.dark #main-navigation-header,
+.dark #about-us-section,
+.dark #contact-panel-page,
+.dark #booking-payment-page,
+.dark #products-catalog-page,
+.dark #admin-dashboard-panel,
+.dark #reports-dashboard-panel,
+.dark main {
+  background-color: #000000 !important;
+  background-image: none !important;
+  color: #f5f5f4 !important;
+  transition: background-color 300ms ease, color 300ms ease;
+}
+
+/* Seamless theme adaptive panels & cards */
+.dark .bg-white,
+.dark .bg-stone-900,
+.dark .bg-stone-950,
+.dark .bg-neutral-900,
+.dark .bg-neutral-950,
+.dark [class*="bg-stone-"],
+.dark [class*="bg-neutral-"],
+.dark [class*="bg-slate-"] {
+  background-color: #000000 !important;
+}
+
+/* Adaptive gray/beige backgrounds */
+.dark .bg-slate-50,
+.dark .bg-slate-100,
+.dark .bg-neutral-50,
+.dark .bg-neutral-100 {
+  background-color: #000000 !important;
+}
+
+.dark .bg-neutral-50\/50,
+.dark .bg-neutral-105\/50,
+.dark .bg-neutral-150 {
+  background-color: rgba(0, 0, 0, 0.75) !important;
+}
+
+/* Adaptive alert & status box backgrounds */
+.dark .bg-emerald-50,
+.dark .bg-emerald-50\/50,
+.dark .bg-emerald-50\/80,
+.dark .bg-emerald-100,
+.dark .bg-emerald-100\/50 {
+  background-color: #064e3b !important; /* emerald-900 */
+}
+
+.dark .bg-amber-50,
+.dark .bg-amber-50\/50,
+.dark .bg-amber-100 {
+  background-color: #3b2306 !important; /* amber-900/40 */
+}
+
+.dark .bg-rose-50,
+.dark .bg-rose-100 {
+  background-color: #451a1a !important; /* red-900/40 */
+}
+
+.dark .bg-blue-50,
+.dark .bg-blue-100 {
+  background-color: #1e293b !important; /* slate-900 */
+}
+
+/* High-contrast dark borders */
+.dark .border-neutral-50,
+.dark .border-neutral-100,
+.dark .border-neutral-150,
+.dark .border-neutral-200,
+.dark .border-neutral-250,
+.dark .border-neutral-350,
+.dark .border-neutral-300,
+.dark .border-neutral-400,
+.dark .border-slate-50,
+.dark .border-slate-100,
+.dark .border-slate-200,
+.dark .border-slate-300 {
+  border-color: #2e2a28 !important; /* stone-800 */
+}
+
+.dark .border-emerald-100,
+.dark .border-emerald-200,
+.dark .border-emerald-250,
+.dark .border-emerald-300 {
+  border-color: #047857 !important; /* emerald-700 */
+}
+
+.dark .border-amber-100,
+.dark .border-amber-200,
+.dark .border-amber-250,
+.dark .border-amber-300 {
+  border-color: #78350f !important; /* amber-700 */
+}
+
+.dark .border-rose-200,
+.dark .border-rose-250,
+.dark .border-rose-300 {
+  border-color: #991b1b !important; /* rose-700 */
+}
+
+/* Adaptive text elements with high contrast */
+.dark .text-neutral-900,
+.dark .text-slate-900,
+.dark .text-neutral-800,
+.dark .text-slate-800,
+.dark .text-black,
+.dark .text-neutral-950 {
+  color: #fafaf9 !important; /* stone-50 */
+}
+
+.dark .text-neutral-700,
+.dark .text-slate-700,
+.dark .text-neutral-600,
+.dark .text-slate-600,
+.dark .text-neutral-550 {
+  color: #e7e5e4 !important; /* stone-200 */
+}
+
+.dark .text-neutral-500,
+.dark .text-slate-500,
+.dark .text-neutral-400,
+.dark .text-slate-400 {
+  color: #a8a29e !important; /* stone-400 */
+}
+
+/* Emerald accents text colors override inside dark mode */
+.dark .text-emerald-600,
+.dark .text-emerald-700,
+.dark .text-emerald-800,
+.dark .text-emerald-900,
+.dark .text-emerald-950 {
+  color: #34d399 !important; /* high-contrast emerald-400 */
+}
+
+/* Amber alert / warnings text colors override inside dark mode */
+.dark .text-amber-700,
+.dark .text-amber-800,
+.dark .text-amber-900,
+.dark .text-amber-950 {
+  color: #fcd34d !important; /* high-contrast amber-300 */
+}
+
+/* Rose / alert text colors override inside dark mode */
+.dark .text-rose-700,
+.dark .text-rose-800,
+.dark .text-rose-900,
+.dark .text-rose-955 {
+  color: #fca5a5 !important; /* high-contrast rose-300 */
+}
+
+/* Custom social colors or brands text overrides inside dark mode */
+.dark .text-blue-700,
+.dark .text-blue-800,
+.dark .text-blue-900,
+.dark [class*="text-[#128C7E]"],
+.dark [class*="text-[#C13584]"],
+.dark [class*="text-[#E1306C]"] {
+  color: #34d399 !important; /* map to nice bright matching accent */
+}
+
+/* Dynamic active tab adjustments under dark mode */
+.dark .bg-emerald-50 {
+  background-color: #064e3b !important; /* emerald-900 */
+  color: #34d399 !important; /* emerald-450 */
+}
+
+/* Hover transitions in late-night environment */
+.dark .hover\:bg-neutral-50:hover,
+.dark .hover\:bg-slate-50:hover,
+.dark .hover\:bg-neutral-100:hover,
+.dark .hover\:bg-slate-100:hover,
+.dark .hover\:bg-emerald-50:hover {
+  background-color: #292524 !important; /* stone-800 */
+}
+
+.dark .hover\:bg-rose-50:hover {
+  background-color: #451a1a !important;
+}
+
+/* Text inputs, selects, textareas */
+.dark input,
+.dark select,
+.dark textarea {
+  background-color: #1c1917 !important;
+  color: #f5f5f4 !important;
+  border-color: #3e3a38 !important;
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #78716c !important; /* stone-500 */
+}
+
+/* ==========================================================================
+   HEAVY BOLD TEXT REFACTORING FOR DARK MODE SESSIONS
+   ========================================================================== */
+.dark h1,
+.dark h2,
+.dark h3,
+.dark h4,
+.dark h5,
+.dark h6 {
+  font-weight: 800 !important;
+}
+
+.dark p,
+.dark span,
+.dark li,
+.dark label,
+.dark button,
+.dark strong,
+.dark blockquote,
+.dark article,
+.dark select,
+.dark option,
+.dark input {
+  font-weight: 600 !important;
+}
+
+/* Make key navigation, primary status, and bold tags even heavier */
+.dark [id^="nav-link-"],
+.dark [id^="mobile-nav-link-"],
+.dark .font-bold,
+.dark .font-semibold,
+.dark .font-extrabold,
+.dark .font-black {
+  font-weight: 800 !important;
+}
+
+

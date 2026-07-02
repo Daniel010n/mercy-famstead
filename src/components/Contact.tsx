@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { 
   MessageSquare, Send, CheckCircle2, AlertCircle, Copy, Check,
-  PhoneCall, Mail, Navigation, ExternalLink, RefreshCw 
+  PhoneCall, Mail, Navigation, ExternalLink, RefreshCw, MapPin
 } from 'lucide-react';
 
 export default function Contact() {
@@ -78,7 +78,7 @@ export default function Contact() {
                   <span className="text-xs font-bold text-neutral-800 uppercase tracking-wider font-mono">Farmstead Coordinates</span>
                 </div>
                 <a 
-                  href="https://maps.google.com/?q=25+TEMIDIRE+AJAGBA+WAKAJAYE,+IBADAN,+OYO+STATE,+NIGERIA" 
+                  href="https://maps.google.com/?q=Boluwatife+Maternity,+Wakajaye,+Ibadan,+Oyo+State,+Nigeria" 
                   target="_blank" 
                   rel="noopener noreferrer" 
                   className="text-[10px] font-bold text-emerald-800 hover:text-emerald-900 hover:underline flex items-center gap-1"
@@ -91,8 +91,8 @@ export default function Contact() {
               {/* Exact Google Iframe locator targeted at coordinates */}
               <div className="w-full h-80 rounded-2xl overflow-hidden shadow-inner bg-neutral-200 relative">
                 <iframe
-                  title="Mercy Farmstead Physical Location Map"
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3956.4173872244247!2d4.0042468!3d7.4189332!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x1039f3794b4bbfff%3A0xc3fa3ca0af987a07!2sAjagba%20Wakajaye%2C%20Ibadan!5e0!3m2!1sen!2sng!4v1700000000000!5m2!1sen!2sng"
+                  title="Mercy Farmstead Physical Location Map with Pinpoint"
+                  src="https://maps.google.com/maps?q=Boluwatife+Maternity,+Wakajaye,+Ibadan,+Oyo+State,+Nigeria&t=&z=16&ie=UTF8&iwloc=B&output=embed"
                   className="w-full h-full border-0"
                   allowFullScreen
                   loading="lazy"
@@ -100,14 +100,27 @@ export default function Contact() {
                 />
               </div>
 
-              <div className="mt-4 px-2 space-y-1">
-                <div className="text-xs font-extrabold text-neutral-900 flex items-center gap-1.5">
-                  <Navigation size={13} className="text-emerald-700" />
-                  <span>No25, TEMIDIRE AJAGBA WAKAJAYE, IBADAN</span>
+              <div className="mt-4 px-2 flex flex-col md:flex-row md:items-center justify-between gap-3 border-t border-neutral-100 pt-3">
+                <div className="space-y-1">
+                  <div className="text-xs font-extrabold text-neutral-900 flex items-center gap-1.5">
+                    <Navigation size={13} className="text-emerald-700" />
+                    <span>BESIDE BOLUWATIFE MATERNITY, NO25 TEMIDIRE AJAGBA WAKAJAYE</span>
+                  </div>
+                  <div className="text-[11px] text-neutral-500 pl-4 font-bold">
+                    IBADAN 200113, OYO STATE, NIGERIA.
+                  </div>
                 </div>
-                <div className="text-[11px] text-neutral-500 pl-4 font-bold">
-                  Beside Boluwatife Maternity, Oyo State, Nigeria.
-                </div>
+                
+                <a 
+                  href="https://www.google.com/maps/dir/?api=1&destination=Boluwatife+Maternity,+Wakajaye,+Ibadan,+Oyo+State,+Nigeria"
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-sm shadow-emerald-600/10 hover:shadow-md transition-all cursor-pointer whitespace-nowrap self-end md:self-center"
+                  id="get-directions-btn"
+                >
+                  <MapPin size={12} className="text-emerald-100" />
+                  <span>Get Directions</span>
+                </a>
               </div>
             </div>
 
@@ -228,7 +241,7 @@ export default function Contact() {
                     placeholder="e.g. John Doe"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full text-xs p-3 bg-white border-0 focus:ring-2 focus:ring-emerald-700 rounded-xl transition-all"
+                    className="w-full text-base font-extrabold p-3 bg-white border border-neutral-300 focus:ring-2 focus:ring-emerald-700 rounded-xl transition-all text-neutral-900"
                   />
                 </div>
 
@@ -242,7 +255,7 @@ export default function Contact() {
                     placeholder="e.g. john@example.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full text-xs p-3 bg-white border-0 focus:ring-2 focus:ring-emerald-700 rounded-xl transition-all"
+                    className="w-full text-base font-extrabold p-3 bg-white border border-neutral-300 focus:ring-2 focus:ring-emerald-700 rounded-xl transition-all text-neutral-900"
                   />
                 </div>
 
@@ -255,7 +268,7 @@ export default function Contact() {
                     placeholder="e.g. 08033142231"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    className="w-full text-xs p-3 bg-white border-0 focus:ring-2 focus:ring-emerald-700 rounded-xl transition-all"
+                    className="w-full text-base font-extrabold p-3 bg-white border border-neutral-300 focus:ring-2 focus:ring-emerald-700 rounded-xl transition-all text-neutral-900"
                   />
                 </div>
 
@@ -269,7 +282,7 @@ export default function Contact() {
                     placeholder="Describe your wholesale order requests, booking inquiries, or feed questions explicitly..."
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
-                    className="w-full text-xs p-3 bg-white border-0 focus:ring-2 focus:ring-emerald-700 rounded-xl transition-all resize-none"
+                    className="w-full text-base font-extrabold p-3 bg-white border border-neutral-300 focus:ring-2 focus:ring-emerald-700 rounded-xl transition-all resize-none text-neutral-900"
                   />
                 </div>
 

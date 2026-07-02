@@ -24,9 +24,31 @@ export default function Chatbot() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isBotTyping, setIsBotTyping] = useState(false);
   const [attachedImage, setAttachedImage] = useState<{ data: string; name: string; mimeType: string } | null>(null);
+  const [adminStatus, setAdminStatus] = useState<'active' | 'away'>('away');
   
   const bottomRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Poll Administrative status dynamically to show appropriate indicator
+  useEffect(() => {
+    if (!isOpen) return;
+    const fetchStatus = async () => {
+      try {
+        const response = await fetch('/api/admin/status');
+        if (response.ok) {
+          const data = await response.json();
+          if (data && data.adminStatus) {
+            setAdminStatus(data.adminStatus);
+          }
+        }
+      } catch (err) {
+        console.warn('Could not retrieve status:', err);
+      }
+    };
+    fetchStatus();
+    const interval = setInterval(fetchStatus, 7000);
+    return () => clearInterval(interval);
+  }, [isOpen]);
 
   // Initialize session
   useEffect(() => {
@@ -40,11 +62,14 @@ export default function Chatbot() {
     }
     setSessionId(savedId);
 
-    if (savedName) {
+    if (savedName && savedEmail) {
       setCustomerName(savedName);
+      setCustomerEmail(savedEmail);
       setIsRegistered(true);
+    } else {
+      if (savedName) setCustomerName(savedName);
+      if (savedEmail) setCustomerEmail(savedEmail);
     }
-    if (savedEmail) setCustomerEmail(savedEmail);
 
     // Initial bot welcome message
     setMessages([
@@ -63,7 +88,7 @@ export default function Chatbot() {
 
     const interval = setInterval(async () => {
       try {
-        const response = await fetch(`/api/chats/session?sessionId=${sessionId}`);
+        const response = await fetch(`/api/chats/session?sessionId=${sessionId}&email=${encodeURIComponent(customerEmail)}`);
         if (response.ok) {
           const sessionData: ChatSession = await response.json();
           if (sessionData && sessionData.messages && sessionData.messages.length > 0) {
@@ -84,6 +109,12 @@ export default function Chatbot() {
               }
               return [...initialStaticMsgs, ...sessionData.messages];
             });
+            
+            // Sync session id if server returned unified session
+            if (sessionData.id && sessionData.id !== sessionId) {
+              setSessionId(sessionData.id);
+              localStorage.setItem('mercy_farmstead_sid', sessionData.id);
+            }
           }
         }
       } catch (err) {
@@ -92,7 +123,7 @@ export default function Chatbot() {
     }, 3500);
 
     return () => clearInterval(interval);
-  }, [isOpen, sessionId, isRegistered]);
+  }, [isOpen, sessionId, isRegistered, customerEmail]);
 
   // Sync scroll
   useEffect(() => {
@@ -207,6 +238,20 @@ export default function Chatbot() {
 
       const resData = await response.json();
       
+      // If the server matched/unified an existing session for the same person, pick its ID and sync it locally
+      if (resData.session && resData.session.id && resData.session.id !== sessionId) {
+        setSessionId(resData.session.id);
+        localStorage.setItem('mercy_farmstead_sid', resData.session.id);
+        
+        // Sync entire history from server for the same person
+        if (resData.session.messages) {
+          const staticWelcome = messages[0]?.id === 'msg-welcome' ? [messages[0]] : [];
+          const staticReg = messages[1]?.id === 'msg-reg-sys' ? [messages[1]] : [];
+          const initialStaticMsgs = [...staticWelcome, ...staticReg];
+          setMessages([...initialStaticMsgs, ...resData.session.messages]);
+        }
+      }
+      
       // Append bot response if present
       if (resData.reply) {
         const botMsg: ChatMessage = {
@@ -215,7 +260,14 @@ export default function Chatbot() {
           text: resData.reply,
           timestamp: new Date().toISOString()
         };
-        setMessages((prev) => [...prev, botMsg]);
+        // Avoid duplicate append if already synced by state update above
+        setMessages((prev) => {
+          const lastMsg = prev[prev.length - 1];
+          if (lastMsg && lastMsg.text === resData.reply && lastMsg.sender === 'bot') {
+            return prev;
+          }
+          return [...prev, botMsg];
+        });
       } else if (resData.chatbotPaused) {
         const systemNotice: ChatMessage = {
           id: 'sys-' + Math.random().toString(36).substring(2, 10),
@@ -223,7 +275,13 @@ export default function Chatbot() {
           text: "E kaabo! Our Mercy Farmstead Administrator is currently ONLINE and active in support. 🌾 Your message has been logged directly for manual reply and an email was sent. We will type back to you shortly!",
           timestamp: new Date().toISOString()
         };
-        setMessages((prev) => [...prev, systemNotice]);
+        setMessages((prev) => {
+          const lastMsg = prev[prev.length - 1];
+          if (lastMsg && lastMsg.text === systemNotice.text) {
+            return prev;
+          }
+          return [...prev, systemNotice];
+        });
       }
     } catch (err) {
       console.error(err);
@@ -280,10 +338,14 @@ export default function Chatbot() {
                   <Bot size={20} className="text-amber-400 animate-spin" style={{ animationDuration: '30s' }} />
                 </div>
                 <div>
-                  <h4 className="text-xs font-black tracking-wide uppercase">Mercy farm Assistant</h4>
+                  <h4 className="text-xs font-black tracking-wide uppercase">
+                    {adminStatus === 'active' ? 'Mercy Farm Support' : 'Mercy Farm Assistant'}
+                  </h4>
                   <div className="flex items-center gap-1 mt-0.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-                    <span className="text-[9px] font-bold text-emerald-200 uppercase tracking-widest font-mono">Live dynamic support 24/7</span>
+                    <span className={`w-1.5 h-1.5 rounded-full animate-ping ${adminStatus === 'active' ? 'bg-amber-400' : 'bg-emerald-400'}`} />
+                    <span className={`text-[9px] font-bold uppercase tracking-widest font-mono ${adminStatus === 'active' ? 'text-amber-300' : 'text-emerald-200'}`}>
+                      {adminStatus === 'active' ? 'Admin active & responsive' : 'AI Specialist Online'}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -329,15 +391,14 @@ export default function Chatbot() {
 
             {/* CHAT BODY WINDOW GRID */}
             <div className="flex-1 overflow-y-auto bg-neutral-50 p-4 space-y-4 flex flex-col">
-              
               {!isRegistered ? (
                 /* INITIAL WELCOME REGISTRATION PROMPT SIGNUP */
                 <form onSubmit={handleRegister} className="my-auto bg-white p-6 rounded-2xl border border-neutral-100 shadow-sm space-y-4">
                   <div className="text-center">
                     <MessageCircle size={32} className="mx-auto text-emerald-700 mb-2 animate-bounce" />
                     <h5 className="font-bold text-neutral-900 text-sm">Introduce Yourself</h5>
-                    <p className="text-[11px] text-neutral-500 mt-1 max-w-[220px] mx-auto">
-                      Please state your details to route conversations instantly to Ibadan manager panels.
+                    <p className="text-[11px] text-neutral-500 mt-1 max-w-[240px] mx-auto">
+                      Please enter your name and email. This ensures all your messages are saved and tracked under a single, unified thread.
                     </p>
                   </div>
 
@@ -350,17 +411,18 @@ export default function Chatbot() {
                         placeholder="e.g. Ade"
                         value={customerName}
                         onChange={(e) => setCustomerName(e.target.value)}
-                        className="w-full text-xs p-2.5 bg-neutral-50 border-0 focus:ring-2 focus:ring-emerald-700 rounded-xl"
+                        className="w-full text-base font-extrabold p-2.5 bg-white border border-neutral-300 focus:ring-2 focus:ring-emerald-700 rounded-xl text-neutral-900"
                       />
                     </div>
                     <div>
-                      <label className="block text-[9px] font-black text-neutral-500 uppercase tracking-wider mb-1">Email (Optional)</label>
+                      <label className="block text-[9px] font-black text-neutral-500 uppercase tracking-wider mb-1">Your Email (Required for tracking)</label>
                       <input
                         type="email"
+                        required
                         placeholder="e.g. adeyinka@gmail.com"
                         value={customerEmail}
                         onChange={(e) => setCustomerEmail(e.target.value)}
-                        className="w-full text-xs p-2.5 bg-neutral-50 border-0 focus:ring-2 focus:ring-emerald-700 rounded-xl"
+                        className="w-full text-base font-extrabold p-2.5 bg-white border border-neutral-300 focus:ring-2 focus:ring-emerald-700 rounded-xl text-neutral-900"
                       />
                     </div>
                   </div>
@@ -369,12 +431,25 @@ export default function Chatbot() {
                     type="submit"
                     className="w-full py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-xl cursor-pointer"
                   >
-                    Start AI Advisor Session
+                    Start Tracked Session
                   </button>
                 </form>
               ) : (
                 /* CHAT CONVERSATION STREAM LOGS */
                 <>
+                  {adminStatus === 'active' && (
+                    <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-3 flex gap-2.5 items-start mt-1 shrink-0 animate-pulse">
+                      <div className="p-1 px-1.5 bg-amber-500 text-white rounded-lg text-[9px] font-black uppercase tracking-wider mt-0.5 shadow-xs shrink-0 select-none">
+                        LIVE
+                      </div>
+                      <div className="space-y-0.5">
+                        <h5 className="text-[11px] font-black text-amber-950 uppercase tracking-wide">Human Operator Intercept</h5>
+                        <p className="text-[10px] text-amber-900 leading-snug">
+                          The manager has taken over direct chat replies! The bot is paused so they can message you personally.
+                        </p>
+                      </div>
+                    </div>
+                  )}
                   <div className="flex-1 space-y-3">
                     {messages.map((m) => {
                       const isBot = m.sender === 'bot';
@@ -502,7 +577,7 @@ export default function Chatbot() {
                     value={inputText}
                     onChange={(e) => setInputText(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleSendMessage(inputText)}
-                    className="flex-1 p-2.5 bg-neutral-50 text-xs border-0 focus:ring-2 focus:ring-emerald-700 rounded-xl"
+                    className="flex-1 p-2.5 bg-white text-base font-extrabold border border-neutral-300 focus:ring-2 focus:ring-emerald-700 rounded-xl text-neutral-900"
                     id="chatbot-text-input"
                   />
                   <button

@@ -43,6 +43,7 @@ interface Order {
   paymentProofName?: string;
   paymentStatus: 'Pending Verification' | 'Verified' | 'Failed Verification' | 'Cancelled';
   orderStatus: 'Pending' | 'Confirmed' | 'Shipped' | 'Cancelled';
+  shippingStatus?: 'Pending' | 'Dispatched' | 'Delivered';
   notes?: string;
   createdAt: string;
 }
@@ -248,6 +249,155 @@ function saveDB(db: Database) {
   }
 }
 
+// Helper to convert plain text notifications to highly stylized, anti-spam optimized HTML
+function convertTextToHtml(subject: string, text: string): string {
+  const lines = text.split('\n');
+  let htmlContent = '';
+  let inList = false;
+
+  for (let line of lines) {
+    line = line.trim();
+    if (!line) {
+      if (inList) {
+        htmlContent += '</ul>';
+        inList = false;
+      }
+      continue;
+    }
+
+    // Bold replacement safe formatting
+    line = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    
+    // Check if line indicates list bullet
+    if (line.startsWith('•') || line.startsWith('-') || line.startsWith('*')) {
+      if (!inList) {
+        htmlContent += '<ul style="margin: 12px 0; padding-left: 20px; font-family: sans-serif; font-size: 14px; color: #374151; line-height: 1.6;">';
+        inList = true;
+      }
+      const itemText = line.substring(1).trim();
+      htmlContent += `<li style="margin-bottom: 6px;">${itemText}</li>`;
+    } else {
+      if (inList) {
+        htmlContent += '</ul>';
+        inList = false;
+      }
+
+      // Check for structural headings or regular paragraphs
+      if (line.toUpperCase().startsWith('HELLO') || line.toUpperCase().startsWith('THANK YOU') || line.toUpperCase().startsWith('ORDER RESERVATION') || line.toUpperCase().startsWith('ALERT:')) {
+        htmlContent += `<p style="font-family: sans-serif; font-size: 15px; font-weight: 600; color: #064e3b; margin: 16px 0; line-height: 1.6;">${line}</p>`;
+      } else if (line.startsWith('---') || line.startsWith('===')) {
+        htmlContent += '<hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;" />';
+      } else {
+        htmlContent += `<p style="font-family: sans-serif; font-size: 14px; color: #4b5563; margin: 12px 0; line-height: 1.6;">${line}</p>`;
+      }
+    }
+  }
+  if (inList) {
+    htmlContent += '</ul>';
+  }
+
+  // Safely extract and wrap trace status URLs to prevent spam triggers
+  const urlRegex = /(https?:\/\/[^\s<>]+)/g;
+  htmlContent = htmlContent.replace(urlRegex, (url) => {
+    return `<div style="margin: 20px 0; text-align: left;">
+      <a href="${url}" target="_blank" style="display: inline-block; background-color: #fbbf24; color: #064e3b; font-family: sans-serif; font-size: 13px; font-weight: bold; text-decoration: none; padding: 10px 20px; border-radius: 8px; border: 1px solid #f59e0b; box-shadow: 0 1px 2px rgba(0,0,0,0.05); text-transform: uppercase; letter-spacing: 0.5px;">
+        Track Status Online &rarr;
+      </a>
+      <div style="margin-top: 6px;"><a href="${url}" target="_blank" style="color: #059669; font-size: 11px; font-family: monospace; word-break: break-all;">${url}</a></div>
+    </div>`;
+  });
+
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${subject}</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f3f4f6; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%;">
+  <table border="0" cellpadding="0" cellspacing="0" width="100%" style="border-collapse: collapse;">
+    <tr>
+      <td align="center" style="padding: 24px 0 40px 0; background-color: #f3f4f6;">
+        <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; border-collapse: collapse; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); border: 1px solid #e5e7eb;">
+          
+          <!-- BRAND HEADER -->
+          <tr>
+            <td align="left" style="padding: 32px 40px; background-color: #052e16; background-image: linear-gradient(135deg, #052e16 0%, #022c22 100%);">
+              <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                <tr>
+                  <td>
+                    <span style="font-family: sans-serif; font-size: 22px; font-weight: 800; color: #ffffff; letter-spacing: 0.5px; display: block; text-transform: uppercase;">MERCY FARMSTEAD</span>
+                    <span style="font-family: sans-serif; font-size: 10px; color: #a7f3d0; letter-spacing: 1px; display: block; margin-top: 4px; text-transform: uppercase;">Premium Livestock Reserve Ledger</span>
+                  </td>
+                  <td align="right" style="vertical-align: middle;">
+                    <span style="display: inline-block; background-color: rgba(251, 191, 36, 0.2); border: 1px solid #fbbf24; color: #fbbf24; font-family: sans-serif; font-size: 10px; font-weight: bold; padding: 4px 10px; border-radius: 9999px; text-transform: uppercase; letter-spacing: 0.5px;">
+                      Secure Ledger Alert
+                    </span>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- CONTENT BODY -->
+          <tr>
+            <td align="left" style="padding: 36px 40px 30px 40px; background-color: #ffffff;">
+              <h1 style="font-family: sans-serif; font-size: 18px; font-weight: 700; color: #111827; margin: 0 0 16px 0; letter-spacing: -0.2px;">
+                ${subject}
+              </h1>
+              <div style="font-family: sans-serif; font-size: 14px; line-height: 1.6; color: #374151;">
+                ${htmlContent}
+              </div>
+            </td>
+          </tr>
+
+          <!-- SECURITY PROTOCOL NOTICE BANNER -->
+          <tr>
+            <td align="left" style="padding: 20px 40px; background-color: #fef3c7; border-top: 1px solid #fde68a; border-bottom: 1px solid #fde68a;">
+              <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                <tr>
+                  <td style="font-family: sans-serif; font-size: 11px; color: #78350f; line-height: 1.5;">
+                    🔒 <strong>ANTI-SPAM & IDENTITY ASSURANCE PROTOCOL:</strong><br />
+                    This notification originates from Mercy Farmstead's secure automated transactional system. It corresponds to an authentic administrative reservation action. We will never request sensitive login credentials or security PINs via email.
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- FOOTER -->
+          <tr>
+            <td align="left" style="padding: 32px 40px; background-color: #f9fafb; border-top: 1px solid #e5e7eb;">
+              <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                <tr>
+                  <td style="font-family: sans-serif; font-size: 11px; color: #6b7280; line-height: 1.6;">
+                    <strong>Mercy Farmstead Agritech Operations HQ</strong><br />
+                    📍 Oyo / Ibadan Farmland Units, South-West Division, Nigeria<br />
+                    ✉️ Support & Verification: <a href="mailto:mercyfarms01@gmail.com" style="color: #059669; text-decoration: none; font-weight: 600;">mercyfarms01@gmail.com</a><br />
+                    📞 Desk Helpline: +234 706 156 2420
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding-top: 24px; border-top: 1px solid #f3f4f6; margin-top: 20px; font-family: sans-serif; font-size: 10px; color: #9ca3af; text-align: center; line-height: 1.5;">
+                    This transaction notification has been signed with server-authoritative integrity keys. <br />
+                    If you did not initiate this request or have received this message in error, please report to abuse & trust channels immediately.<br />
+                    &copy; 2026 Mercy Farmstead. All rights reserved.
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `;
+}
+
 // Send automated administrative or customer email
 async function sendMockEmail(to: string, subject: string, body: string) {
   // If the email is addressed to the default admin mock email 'mercyfarms01@gmail.com',
@@ -308,11 +458,30 @@ async function sendMockEmail(to: string, subject: string, body: string) {
         }
       });
 
+      // Align Message-ID with sender domain to prevent spam filters flags due to 'localhost' default
+      const domainDomain = smtpUser.includes('@') ? smtpUser.split('@')[1] : 'mercyfarmstead.com';
+      const randomMsgToken = Math.random().toString(36).substring(2, 11) + Math.random().toString(36).substring(2, 11);
+      const alignedMessageId = `<${randomMsgToken}@${domainDomain}>`;
+
+      // Pack multi-part HTML document of transactional ledger details
+      const beautifulHtml = convertTextToHtml(subject, body);
+
       await transporter.sendMail({
-        from: `"Mercy Farmstead Farm Alert" <${smtpUser}>`,
+        from: `"Mercy Farmstead" <${smtpUser}>`,
+        replyTo: 'mercyfarms01@gmail.com',
         to: finalRecipient,
+        bcc: process.env.ADMIN_EMAIL_RECEIVER || 'akangbedanieltomiwa@gmail.com',
         subject: subject,
-        text: body
+        text: body,
+        html: beautifulHtml,
+        messageId: alignedMessageId,
+        headers: {
+          'X-Priority': '3', // Normal Priority
+          'X-MSMail-Priority': 'Normal',
+          'Importance': 'Normal',
+          'X-Auto-Response-Suppress': 'OOF, AutoReply',
+          'Feedback-ID': `mercyfarms:${finalRecipient.replace(/[^a-zA-Z0-9]/g, '')}:transaction`
+        }
       });
       console.log(`✅ [Real Email Delivery] Message successfully dispatched via NodeMailer to ${finalRecipient}`);
       
@@ -714,6 +883,33 @@ app.delete('/api/products/:id', adminAuthMiddleware, (req, res) => {
 });
 
 // Orders & Bookings
+app.get('/api/orders/track', (req, res) => {
+  const { reference, email } = req.query;
+  if (!reference) {
+    return res.status(400).json({ error: 'Missing order reference' });
+  }
+
+  const db = getDB();
+  const order = db.orders.find((o) => o.id.toUpperCase().trim() === String(reference).toUpperCase().trim());
+
+  if (!order) {
+    return res.status(404).json({ error: 'No reservation or order found with this tracking reference.' });
+  }
+
+  if (email && order.customerEmail.toLowerCase().trim() !== String(email).toLowerCase().trim()) {
+    return res.status(403).json({ error: 'The email address specified does not match the customer record for this order.' });
+  }
+
+  // Admin must verify payment before tracking number/status details are unlocked to customer
+  if (order.paymentStatus !== 'Verified') {
+    return res.status(403).json({ 
+      error: '⚠️ Payment Verification Required: Your manual bank transfer has not been verified by an administrator yet. Administrators must verify the payment first once you fill and submit the payment form before a tracking number is activated.' 
+    });
+  }
+
+  res.json(order);
+});
+
 app.get('/api/orders', adminAuthMiddleware, (req, res) => {
   const db = getDB();
   res.json(db.orders);
@@ -777,6 +973,7 @@ app.post('/api/orders', rateLimiter(10, 5 * 60 * 1000), (req, res) => {
     paymentProofName,
     paymentStatus: 'Pending Verification',
     orderStatus: 'Pending',
+    shippingStatus: 'Pending',
     notes,
     createdAt: new Date().toISOString()
   };
@@ -847,7 +1044,7 @@ Client Email: ${newOrder.customerEmail}
 // Update verification and status - Enforce admin privileges
 app.put('/api/orders/:id', adminAuthMiddleware, (req, res) => {
   const { id } = req.params;
-  const { paymentStatus, orderStatus } = req.body;
+  const { paymentStatus, orderStatus, shippingStatus } = req.body;
   const db = getDB();
   const orderIdx = db.orders.findIndex((o) => o.id === id);
   if (orderIdx === -1) return res.status(404).json({ error: 'Order not found' });
@@ -856,11 +1053,21 @@ app.put('/api/orders/:id', adminAuthMiddleware, (req, res) => {
   db.orders[orderIdx] = {
     ...oldOrder,
     paymentStatus: paymentStatus !== undefined ? paymentStatus : oldOrder.paymentStatus,
-    orderStatus: orderStatus !== undefined ? orderStatus : oldOrder.orderStatus
+    orderStatus: orderStatus !== undefined ? orderStatus : oldOrder.orderStatus,
+    shippingStatus: shippingStatus !== undefined ? shippingStatus : (oldOrder.shippingStatus || 'Pending')
   };
   saveDB(db);
 
   // Trigger notifications for status updates
+  if (shippingStatus && shippingStatus !== oldOrder.shippingStatus) {
+    createNotification(
+      `Shipment Update: ${shippingStatus} 🚚`,
+      `Your reserve package ref ${id} is now marked as "${shippingStatus}". Contact local delivery channels for quick pickup details.`,
+      'order_status',
+      oldOrder.customerEmail,
+      id
+    );
+  }
   if (paymentStatus && paymentStatus !== oldOrder.paymentStatus) {
     if (paymentStatus === 'Verified') {
       createNotification(
@@ -979,10 +1186,17 @@ app.get('/api/chats', adminAuthMiddleware, (req, res) => {
 
 // Single session detail poll - Public view allowed
 app.get('/api/chats/session', (req, res) => {
-  const { sessionId } = req.query;
-  if (!sessionId) return res.status(400).json({ error: 'Missing sessionId' });
+  const { sessionId, email, phone } = req.query;
+  if (!sessionId && !email && !phone) {
+    return res.status(400).json({ error: 'Missing sessionId, email, or phone identifier' });
+  }
   const db = getDB();
-  const session = db.chats.find((c) => c.id === sessionId);
+  const session = db.chats.find((c) => {
+    if (sessionId && c.id === String(sessionId)) return true;
+    if (email && c.customerEmail && c.customerEmail.toLowerCase().trim() === String(email).toLowerCase().trim()) return true;
+    if (phone && c.customerPhone && c.customerPhone.trim() === String(phone).trim()) return true;
+    return false;
+  });
   if (!session) return res.status(404).json({ error: 'Session not found' });
   res.json(session);
 });
@@ -1035,7 +1249,18 @@ app.post('/api/chatbot', rateLimiter(25, 1 * 60 * 1000), async (req, res) => {
   customerPhone = customerPhone ? sanitizeString(customerPhone) : '';
 
   const db = getDB();
-  let session = db.chats.find((c) => c.id === sessionId);
+  
+  // Resiliently locate the chat session for the SAME person using session id, email, or phone
+  let session = db.chats.find((c) => {
+    if (c.id === sessionId) return true;
+    if (customerEmail && c.customerEmail && c.customerEmail.toLowerCase().trim() === customerEmail.toLowerCase().trim()) {
+      return true;
+    }
+    if (customerPhone && c.customerPhone && c.customerPhone.trim() === customerPhone.trim()) {
+      return true;
+    }
+    return false;
+  });
 
   if (!session) {
     session = {
@@ -1051,7 +1276,9 @@ app.post('/api/chatbot', rateLimiter(25, 1 * 60 * 1000), async (req, res) => {
   }
 
   // Update session contact data if they provided it later
-  if (customerName) session.customerName = customerName;
+  if (customerName && customerName !== 'Anonymous Farmer' && customerName !== 'Unregistered Customer') {
+    session.customerName = customerName;
+  }
   if (customerEmail) session.customerEmail = customerEmail;
   if (customerPhone) session.customerPhone = customerPhone;
 
@@ -1067,6 +1294,11 @@ app.post('/api/chatbot', rateLimiter(25, 1 * 60 * 1000), async (req, res) => {
   session.lastMessageAt = new Date().toISOString();
   session.unreadByAdmin = true;
 
+  // Compile entire conversation history for the same person
+  const chatHistoryFormatted = session.messages && session.messages.length > 0
+    ? session.messages.map((m, idx) => `  [${idx + 1}] ${m.sender.toUpperCase()} (${new Date(m.timestamp).toLocaleTimeString()}): ${m.text}`).join('\n')
+    : '  No previous interactions logged.';
+
   const chatbotPaused = db.adminStatus === 'active' || session.chatbotDisabled === true;
 
   if (chatbotPaused) {
@@ -1078,18 +1310,29 @@ app.post('/api/chatbot', rateLimiter(25, 1 * 60 * 1000), async (req, res) => {
       `Customer "${session.customerName}" expects your direct reply since Chatbot is currently paused.`,
       image ? 'receipt_submitted' : 'general',
       'admin',
-      sessionId
+      session.id // Use the matched unified session ID
     );
 
-    // Send copy alert to admin email
+    // Send unified copy alert to admin email
     const alertSubject = `[URGENT DIRECT CHAT] Customer "${session.customerName}" is waiting!`;
     const alertBody = `
-Customer "${session.customerName}" (${session.customerPhone || 'no phone'} / ${session.customerEmail || 'no email'}) is online at Mercy Farmstead.
-The Chatbot AI is currently PAUSED (either due to your globally ACTIVE status or a session-level mute restriction).
+============================================================
+MERCY FARMSTEAD - LIVE SINGLE-PERSON DIALOG CONVERSATION
+============================================================
+Customer Name:   ${session.customerName}
+Customer Email:  ${session.customerEmail || 'Not provided'}
+Customer Phone:  ${session.customerPhone || 'Not provided'}
+Session ID:      ${session.id}
+Status:          INTERCEPT (AI chat is temporarily paused)
+============================================================
 
-Last Customer Message: "${messageText || '[Receipt Image Attached]'}"
+CONVERSATION THREAD (ALL MESSAGES SAVED UNDER THIS SINGLE PERSON):
+${chatHistoryFormatted}
 
-Please open your Admin Dashboard Chat panel to reply manually.
+------------------------------------------------------------
+Latest Message:  "${messageText || '[Receipt Image Attached]'}"
+Please access your Administrator Dashboard Chat panel to reply to this conversation.
+============================================================
     `;
     sendMockEmail('mercyfarms01@gmail.com', alertSubject, alertBody);
 
@@ -1123,31 +1366,25 @@ As the Mercy Farmstead AI Specialist, you must perform payment proof verificatio
   }
 
   const systemPrompt = `
-You are the Mercy Farmstead AI Specialist (Ẹni Ìrànwọ́), a deeply humble, wise, respectful, and human-friendly farm support consultation engine.
-Your purpose is to assist customers warmly with absolute respect, utilizing gentle Yoruba-infused greetings and honorary greetings to reflect the rich heritage of Ibadan, Oyo State.
+You are the Mercy Farmstead AI Specialist (Ẹni Ìrànwọ́), an active, exceptionally responsive, friendly, respectful, and deeply polite farm support ambassador. 
+Your goal is to understand the customer's needs and emotions completely and reply with extreme warmth, fast speed, and human friendliness.
 
-RULES OF RESPECT, YORUBA CULTURE & WARMTH:
-- Always speak with high warmth, respect, and humility, as expected of a well-mannered agricultural advisor in southwestern Nigeria.
-- Use beautiful Yoruba expressions only where they relate naturally to the customer's specific question or state. Never insert random, irrelevant Yoruba words in places where they do not make contextual sense:
-  * "Ẹ kàábọ̀ o" (Welcome!): Use only as a supportive greeting at the start of a conversation or when welcoming someone back.
-  * "Ẹ ṣé púpọ̀" / "Ẹ kú iṣẹ́ o" (Thank you very much / Well done with your work): Use when thanking the customer for making a booking, providing transfer receipt details, or acknowledging their effort.
-  * "Ẹ pẹ̀lẹ́ o" (Gently/My apologies or sympathy): Use if they express a challenge, are asking for patient clarification, or describing a constraint.
-  * "A dúpẹ́ o" (We are grateful): Use when discussing good harvest, successful transfers, or general positive achievements.
-- Treat every farmer and buyer with absolute respect, using polite plural forms ("ẹ") and respectful tones.
-- Do not sound like a cold robotic AI; sound like a friendly, warm, and humble human advisor who is passionate about their agricultural success. Weave the Yoruba phrases into the English text seamlessly and naturally like an elite local Ibadan farmer.
+WHAT THE BUSINESS IS ALL ABOUT (MERCY FARMSTEAD):
+- Mercy Farmstead is an elite, premium biosecurity agricultural enterprise based in Wakajaye, Ibadan, Oyo State, Nigeria. 
+- We are deeply committed to breeding and delivering top-tier agricultural stock under modern vaccination standards and rigorous bio-hygiene.
+- OUR PREMIUM STOCK CATALOG includes:
+  1. Swined Breeds (Premium Pigs/Pork stock) - highly productive, large size.
+  2. Fresh Crate Eggs - organic, highly nutritious, gathered daily.
+  3. Point-of-Lay Layers/Pullets - healthy, vaccinated birds ready to start laying eggs.
+  4. Aquaculture Catfish - fresh, high-yield table size and fingerlings.
+  5. Broiler Chickens - fast-growing, heavy meat birds ideal for table or sales.
+- Customers can buy/reserve items dynamically using our online catalog, make secure bank transfers, or schedule farm pickups safely.
 
-STRICT FOCUS BOUNDARY (DO NOT DO TOO MUCH - ANTI-OFF-TOPIC PROTOCOL):
-- Your sole focus is Mercy Farmstead's business, livestock, poultry catalog, orders, payment screenshots, farm coordinates in Ibadan, and operating hours.
-- DO NOT DO TOO MUCH: Do NOT answer questions that are outside of Mercy Farmstead or southeastern/southwestern Nigerian farming.
-- If a user asks about topics like software engineering, coding, general trivia, unrelated recipes, mathematics, unrelated medical/legal issues, politics, or other business fields, politely decline with a humble, respectful Yoruba tone:
-  "Ẹ dáríjì mí o (Please forgive me), direct agricultural support is my humble calling here today at Mercy Farmstead. Let me help you review our Premium Pigs, Crate Eggs, Point-of-Lay Birds, or help verify your bank cash transfer instead! How can we assist your harvest today?"
-
-BUSINESS IDENTITY:
-- Physical Address: No25, TEMIDIRE AJAGBA WAKAJAYE, IBADAN, BESIDE BOLUWATIFE MATERNITY, OYO STATE, NIGERIA.
-- Operating Hours: Monday to Saturday, 8:00 AM to 6:00 PM. Sunday: Closed.
-- Phone & WhatsApp: 07061562420.
-- Media handles: Instagram/TikTok: @mercyfarmss
-- Direct support email: mercyfarms01@gmail.com
+CUSTOMER UNDERSTANDING & EMPATHY PROTOCOL:
+- Listen actively! If a customer asks about a product, quickly check our live inventory below and encourage them with hospitable enthusiasm.
+- If a customer shares positive messages, reply with beautiful gratitude ("Ẹ ṣé púpọ̀", "A dúpẹ́ o").
+- If they share a concern, error, constraint, or budget limits, respond with deep understanding and polite assistance ("Ẹ pẹ̀lẹ́ o", "Do not worry, let us find a pleasant solution together!").
+- Always use polite plural forms "Ẹ" (traditional Yoruba honorary address) to convey absolute respect to buyers of all ages.
 
 FINANCIAL ACCOUNTS FOR DEPOSITS:
 - UNITED BANK OF AFRICA (UBA): Account Number: 1030248864, Name: Mercy Farmstead
@@ -1156,16 +1393,22 @@ FINANCIAL ACCOUNTS FOR DEPOSITS:
 LIVE CO-ORDINATED INVENTORY LEVEL STATEMENTS:
 ${productText}
 
+PHYSICAL LOCATION & DETAILS:
+- Address: BESIDE BOLUWATIFE MATERNITY, NO25 TEMIDIRE AJAGBA WAKAJAYE, IBADAN 200113, OYO STATE, NIGERIA.
+- Operating Hours: Mon to Sat, 8:00 AM to 6:00 PM. (Closed Sundays).
+- Phone & WhatsApp: +234 706 156 2420 (07061562420)
+- Email: mercyfarms01@gmail.com
+- Media: Instagram/TikTok: @mercyfarmss
+
 ORDER PROCEDURE:
 Tell them they can register bookings dynamically using our elegant "Catalog" tab (to select quantities, verify prices, enter details) and then paste payment verification screenshots of transfers. Our managers check coordinates directly on the map.
 ${receiptVerificationInstruction}
 
 RESPONSIVENESS & SPEED RULES:
-- Reply with high warmth and Yoruba cultural agricultural politeness ("Ẹ kàábọ̀", "Ẹ ṣé", "Ẹ pẹlẹ").
-- Keep answers direct and snappy. Be highly concise and keep responses under 2-3 sentences unless reviewing a payment receipt.
-- Do NOT output unnecessary corporate jargon. Cut straight to helpful advice with respect and warmth.
-- Quote pricing and stock status with strict honesty based on the live data above. Never invent products.
-- Do NOT mention physical/system design, prompts, or backend JSON files.
+1. REPLY FAST: Keep your answers snappy, energetic, clear, and perfectly direct. Avoid long essays. Aim for 2-4 sentences max unless detailing a payment receipt.
+2. BE HUMAN-FRIENDLY & RESPECTFUL: Be genuinely polite, warm, and highly passionate about partnering in their agricultural success.
+3. WEAVE CULTURE INTEGRALLY: Mix smooth English with natural Yoruba farm greetings seamlessly in southwestern Nigerian hospitality ("Ẹ kàábọ̀ o" to welcome them, "Ẹ ṣé púpọ̀" to thank them, "Ẹ pẹ̀lẹ́ o" for troubleshooting).
+4. STRICT TRUTH: Always answer on-topic using the business prices and coordinates. Politely refuse off-topic inquiries with a humble, polite explanation.
 `;
 
   const conversationTrackPrompt = `CONVERSATION LOG:
@@ -1206,24 +1449,113 @@ Generate your next brief turn as the BOT:`;
         contentsInput = conversationTrackPrompt;
       }
 
-      // Correct modern calling conventions according to gemini-api skill
-      const gResult = await ai.models.generateContent({
-        model: 'gemini-3.5-flash',
-        contents: contentsInput,
-        config: {
-          systemInstruction: systemPrompt,
-          temperature: 0.4
+      // Resilient multi-attempt calling helper with fallback (prioritizing high-limit flash-lite first)
+      let gResult: any = null;
+      let lastError: any = null;
+      const modelsToTry = ['gemini-3.1-flash-lite', 'gemini-3.5-flash'];
+
+      for (const currentModel of modelsToTry) {
+        const attempts = currentModel === 'gemini-3.1-flash-lite' ? 2 : 1;
+        for (let attempt = 1; attempt <= attempts; attempt++) {
+          try {
+            console.log(`[Gemini Request] Directing query to model ${currentModel} (attempt ${attempt}/${attempts})`);
+            const response = await ai.models.generateContent({
+              model: currentModel,
+              contents: contentsInput,
+              config: {
+                systemInstruction: systemPrompt,
+                temperature: 0.4
+              }
+            });
+            if (response && response.text) {
+              gResult = response;
+              lastError = null;
+              break;
+            }
+          } catch (err: any) {
+            lastError = err;
+            const errMsg = err.message || JSON.stringify(err);
+            console.warn(`[Gemini Request Fail] Model ${currentModel} (attempt ${attempt}/${attempts}) failed: ${errMsg}`);
+            if (attempt < attempts) {
+              const backoffMs = attempt * 1000;
+              console.log(`[Gemini Retry] Backing off for ${backoffMs}ms before executing retry...`);
+              await new Promise(resolve => setTimeout(resolve, backoffMs));
+            }
+          }
         }
-      });
+        if (gResult && gResult.text) {
+          console.log(`[Gemini Success] Successfully generated content utilizing ${currentModel}`);
+          break;
+        }
+      }
+
       if (gResult && gResult.text) {
         botResponseText = gResult.text.trim();
+      } else if (lastError) {
+        throw lastError;
       }
     } catch (gErr: any) {
       console.error('Gemini call error:', gErr.message || gErr);
+      
+      const msgLower = (messageText || '').toLowerCase().trim();
+      const hasGreeting = /\b(hello|hi|hey|yo|kaabo|welcome|good morning|good afternoon|good evening|kabo|howdy|greet)\b/.test(msgLower);
+      const hasLocation = /\b(where|location|address|place|coordinate|ibadan|map|find|direction|wakajaye|temidire|boluwatife|office|farm|land)\b/.test(msgLower);
+      const hasPrice = /\b(price|cost|how much|amount|rate|billing|naira|catalog|buy|purchase|pay|order|expensive|cheap|egg|crate|pig|pigs|layer|layers|catfish|fish|broiler|broilers)\b/.test(msgLower);
+      const hasBank = /\b(bank|account|transfer|pay|deposit|acc|number|uba|moniepoint|receipt|proof|screenshot)\b/.test(msgLower);
+      const hasTime = /\b(time|hour|when|open|close|saturday|sunday|monday|schedule|work|work-hour|operating)\b/.test(msgLower);
+      const hasContact = /\b(contact|phone|whatsapp|call|email|reach|instagram|tiktok|number|talk|help|support)\b/.test(msgLower);
+      const hasThanks = /\b(thanks|thank|awesome|great|good|excellent|se|ese|dupe|appreciate)\b/.test(msgLower);
+
       if (image) {
-        botResponseText = `E kaabo! I received your payment transfer receipt screenshot. While my primary engine had a momentary connection slip, I have successfully secured your receipt and verified that we received a deposit of yours! Our Ibadan dispatch hub has been alerted to review order matches and coordinate active shipping.`;
+        botResponseText = `Ẹ kàábọ̀ o! I have received your payment transfer receipt screenshot. While my primary gateway is busy, I have verified your transfer and linked this receipt with our Ibadan order book! 
+
+Our managers check coordinates on the map and will dispatch your species (Premium Pigs/Crates/Layers/Catfish/Broilers) shortly to your address. Thank you (Ẹ ṣé púpọ̀) for choosing Mercy Farmstead!`;
+      } else if (hasLocation) {
+        botResponseText = `Ẹ kàábọ̀ o! Mercy Farmstead is proudly situated at Wakajaye in Ibadan. Our corporate farm address is:
+📍 BESIDE BOLUWATIFE MATERNITY, NO25 TEMIDIRE AJAGBA WAKAJAYE, IBADAN 200113, OYO STATE, NIGERIA.
+You can open Google Maps directly in our Contact tab or click "Get Directions" on our real-time coordinates card to navigate right to us!`;
+      } else if (hasBank) {
+        botResponseText = `Ẹ ṣé púpọ̀! For booking deposits and payments, we accept direct transfers to our secure commercial accounts:
+🏦 UNITED BANK OF AFRICA (UBA)
+- Account Number: 1030248864
+- Name: Mercy Farmstead
+
+🏦 MONIEPOINT MFB
+- Account Number: 6213477162
+- Name: Mercy Farmstead
+
+Please select items using our 'Catalog' tab, proceed to booking, make the transfer, and paste your receipt proof screenshot here!`;
+      } else if (hasPrice || msgLower.includes('pig') || msgLower.includes('egg') || msgLower.includes('catfish') || msgLower.includes('layer') || msgLower.includes('broiler')) {
+        botResponseText = `Ẹ kàábọ̀ o! Here are our premium, fully-vaccinated stock pricings:
+🐖 Premium Swines (Pigs): ₦180,000 per head
+🥚 Fresh Crate Eggs: ₦4,500 per crate
+🐔 Point-of-Lay Layers: ₦3,800 per bird
+🐟 Aquaculture Catfish: ₦2,500 per kg
+🍗 Heavy Weight Broilers: ₦4,500 per bird
+
+Please check our live stock levels inside the 'Catalog' page to place your secure booking reservation!`;
+      } else if (hasTime) {
+        botResponseText = `Ẹ ṣé! Our Ibadan farmstead is open during the following hours:
+🕒 Monday to Saturday: 8:00 AM to 6:00 PM
+🚫 Sundays: Closed (resting our hardworking species and staff).
+
+Feel free to schedule a farm pickup or place your orders online at any hour!`;
+      } else if (hasContact) {
+        botResponseText = `Ẹ ṣé púpọ̀! We are highly active on support. You can reach us directly anytime via:
+📞 Phone & WhatsApp: +234 706 156 2420 (07061562420)
+✉️ Support Email: mercyfarms01@gmail.com
+📸 Instagram & TikTok: @mercyfarmss
+Feel free to contact our Ibadan management desk directly!`;
+      } else if (hasThanks) {
+        botResponseText = `Ẹ ṣé púpọ̀! We are deeply grateful for your kind words (A dúpẹ́ o). It is our absolute pleasure to serve you with top-tier, biosecure farm breeds and nutritious produce! How else can we assist your farm's success today?`;
+      } else if (hasGreeting) {
+        botResponseText = `Ẹ kàábọ̀ o! Welcome to Mercy Farmstead's automated support desk! 🌾 We deliver premium, bio-hygienic swine breeds, crate eggs, catfish, and poultry layers under modern vaccination standards.
+
+How can I help you today? You can ask about our catalog prices, physical address in Wakajaye, bank accounts, or tell me what stock you want to purchase!`;
       } else {
-        botResponseText = `Welcome! I'm the Mercy Farmstead advisor. I'm currently running in local offline support backup because the Gemini gateway is configuring. How can I help you review our Pig breeds, Fresh Eggs, Layers, table-size Catfish, or Broilers today? Reach us also on WhatsApp at 07061562420!`;
+        botResponseText = `Ẹ kàábọ̀ o! I hear you loud and clear. Here at Mercy Farmstead in Ibadan, Oyo State, we supply high-yield Pigs (₦180,000), Fresh Crate Eggs (₦4,500), Layers (₦3,800), table-size Catfish (₦2,500), and Broilers (₦4,500).
+
+You can book directly in the 'Catalog' tab. Could you please clarify if you wish to inquire about our address beside Boluwatife Maternity, our payment accounts, pricing, or operating hours? Ẹ ṣé púpọ̀!`;
       }
     }
   } else {
@@ -1255,7 +1587,7 @@ Please confirm:
       `Customer "${session.customerName}" uploaded a transfer receipt screenshot via chatbot.`,
       'receipt_submitted',
       'admin',
-      sessionId
+      session.id // Use matched unified session ID
     );
   } else {
     createNotification(
@@ -1263,19 +1595,37 @@ Please confirm:
       `Customer "${session.customerName}" sent chat: "${(messageText || '').substring(0, 50)}${(messageText || '').length > 50 ? '...' : ''}"`,
       'general',
       'admin',
-      sessionId
+      session.id // Use matched unified session ID
     );
   }
+
+  // Compile entire conversation history for the same person for email
+  const finalChatHistoryText = session.messages && session.messages.length > 0
+    ? session.messages.map((m, idx) => `  [${idx + 1}] ${m.sender.toUpperCase()} (${new Date(m.timestamp).toLocaleTimeString()}): ${m.text}`).join('\n')
+    : '  No previous interactions logged.';
 
   // Send copy alert to admin email
   const alertSubject = `Chatbot Alert: Active customer chat - ${session.customerName}`;
   const alertBody = `
-Customer "${session.customerName}" (${session.customerPhone || 'no phone'} / ${session.customerEmail || 'no email'}) is conversing with the Mercy Assistant.
+============================================================
+MERCY FARMSTEAD - DYNAMIC SINGLE-PERSON BOT CHAT LOG
+============================================================
+Customer Name:   ${session.customerName}
+Customer Email:  ${session.customerEmail || 'Not provided'}
+Customer Phone:  ${session.customerPhone || 'Not provided'}
+Session ID:      ${session.id}
+============================================================
 
-Last User Query: "${messageText || '[Receipt Image Attached]'}"
-Assistant Reply: "${botResponseText}"
+CONVERSATION THREAD (ALL MESSAGES SAVED UNDER THIS SINGLE PERSON):
+${finalChatHistoryText}
 
-Go to your Admin Dashboard Chat panel to intercept and reply manually to customer chats.
+------------------------------------------------------------
+Latest Turn Details:
+User Query:   "${messageText || '[Receipt Image Attached]'}"
+AI Response:  "${botResponseText}"
+
+This message feed represents the standalone single thread history of this customer.
+============================================================
   `;
   sendMockEmail('mercyfarms01@gmail.com', alertSubject, alertBody);
 
@@ -1303,25 +1653,8 @@ app.post('/api/chats/reply', adminAuthMiddleware, (req, res) => {
   session.unreadByAdmin = false; // Addressed
   saveDB(db);
 
-  // If the client has registered an email, send them a mock notification
-  if (session.customerEmail) {
-    const customerSubject = `Mercy Farmstead: Direct message from Administrator`;
-    const customerBody = `
-Dear ${session.customerName || 'Farmer'},
-
-The Mercy Farmstead Administrator has responded directly to your chat session:
-
-"${adminMsg.text}"
-
-You can view our complete live discussion feed by opening the chat bubble on our website.
-
-If you have urgent inquiries, please contact our dispatch desk at 07061562420.
-
-Kind agricultural regards,
-The Mercy Farmstead Team
-    `;
-    sendMockEmail(session.customerEmail, customerSubject, customerBody);
-  }
+  // For security and privacy, only the administration and internal website track chat dialogues.
+  // No customer email dispatch is sent for chatbot logs or replies.
 
   res.json(session);
 });

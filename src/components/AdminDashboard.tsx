@@ -126,6 +126,7 @@ export default function AdminDashboard({
   const [selectedVerifyOrder, setSelectedVerifyOrder] = useState<Order | null>(null);
   const [verifyActionPayState, setVerifyActionPayState] = useState<string>('');
   const [verifyActionOrderState, setVerifyActionOrderState] = useState<string>('');
+  const [verifyActionShippingState, setVerifyActionShippingState] = useState<string>('Pending');
   const [adminChallengePin, setAdminChallengePin] = useState<string>('');
   const [challengeError, setChallengeError] = useState<string | null>(null);
   const [challengeIsLoading, setChallengeIsLoading] = useState<boolean>(false);
@@ -385,6 +386,7 @@ export default function AdminDashboard({
     setSelectedVerifyOrder(order);
     setVerifyActionPayState(payState);
     setVerifyActionOrderState(orderState);
+    setVerifyActionShippingState(order.shippingStatus || 'Pending');
     setAdminChallengePin('');
     setChallengeError(null);
   };
@@ -415,7 +417,8 @@ export default function AdminDashboard({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           paymentStatus: verifyActionPayState, 
-          orderStatus: verifyActionOrderState 
+          orderStatus: verifyActionOrderState,
+          shippingStatus: verifyActionShippingState
         })
       });
 
@@ -894,7 +897,7 @@ export default function AdminDashboard({
                 placeholder="Enter authorized administrator email"
                 value={adminEmail}
                 onChange={(e) => setAdminEmail(e.target.value)}
-                className="w-full text-sm font-semibold p-3 bg-slate-900 border border-slate-700 focus:ring-2 focus:ring-emerald-500 rounded-xl text-white placeholder-slate-500 block font-sans outline-none"
+                className="w-full text-base font-extrabold p-3 bg-slate-900 border border-slate-600 focus:ring-2 focus:ring-emerald-500 rounded-xl text-white placeholder-slate-500 block font-sans outline-none"
               />
             </div>
 
@@ -909,7 +912,7 @@ export default function AdminDashboard({
                   placeholder="••••••••"
                   value={passcode}
                   onChange={(e) => setPasscode(e.target.value)}
-                  className="w-full text-sm font-extrabold p-3 bg-slate-900 border border-slate-700 focus:ring-2 focus:ring-emerald-500 rounded-xl text-white placeholder-slate-550 block pr-12 font-mono outline-none"
+                  className="w-full text-base font-black p-3 bg-slate-900 border border-slate-600 focus:ring-2 focus:ring-emerald-500 rounded-xl text-white placeholder-slate-550 block pr-12 font-mono outline-none"
                 />
                 <button
                   type="button"
@@ -1349,7 +1352,7 @@ export default function AdminDashboard({
                               placeholder="Swine"
                               value={prodFormName}
                               onChange={(e) => setProdFormName(e.target.value)}
-                              className="w-full text-xs font-bold p-2.5 bg-white border border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:ring-2 focus:ring-emerald-700 rounded-xl outline-none"
+                              className="w-full text-base font-extrabold p-2.5 bg-white border border-neutral-400 text-neutral-900 placeholder-neutral-400 focus:ring-2 focus:ring-emerald-700 rounded-xl outline-none"
                             />
                           </div>
                           <div>
@@ -1366,7 +1369,7 @@ export default function AdminDashboard({
                                   setProdFormCategory(val);
                                 }
                               }}
-                              className="w-full text-xs font-bold p-2.5 bg-white border border-neutral-300 text-neutral-900 focus:ring-2 focus:ring-emerald-700 rounded-xl outline-none"
+                              className="w-full text-base font-extrabold p-2.5 bg-white border border-neutral-400 text-neutral-900 focus:ring-2 focus:ring-emerald-700 rounded-xl outline-none"
                             >
                               <option value="Pigs">Pigs</option>
                               <option value="Eggs">Eggs</option>
@@ -1384,7 +1387,7 @@ export default function AdminDashboard({
                                   placeholder="e.g. Turkey..."
                                   value={customCategoryValue}
                                   onChange={(e) => setCustomCategoryValue(e.target.value)}
-                                  className="w-full text-xs font-bold p-2.5 bg-emerald-50/50 border border-emerald-300 text-neutral-900 placeholder-neutral-400 focus:ring-2 focus:ring-emerald-700 rounded-xl outline-none"
+                                  className="w-full text-base font-extrabold p-2.5 bg-emerald-50/50 border border-emerald-400 text-neutral-900 placeholder-neutral-400 focus:ring-2 focus:ring-emerald-700 rounded-xl outline-none"
                                 />
                               </div>
                             )}
@@ -1400,7 +1403,7 @@ export default function AdminDashboard({
                               placeholder="5000"
                               value={prodFormPrice}
                               onChange={(e) => setProdFormPrice(e.target.value)}
-                              className="w-full text-xs font-bold p-2.5 bg-white border border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:ring-2 focus:ring-emerald-700 rounded-xl outline-none"
+                              className="w-full text-base font-extrabold p-2.5 bg-white border border-neutral-400 text-neutral-900 placeholder-neutral-400 focus:ring-2 focus:ring-emerald-700 rounded-xl outline-none"
                             />
                           </div>
                           <div>
@@ -1411,7 +1414,7 @@ export default function AdminDashboard({
                               placeholder="crate/head/kg"
                               value={prodFormUnit}
                               onChange={(e) => setProdFormUnit(e.target.value)}
-                              className="w-full text-xs font-bold p-2.5 bg-white border border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:ring-2 focus:ring-emerald-700 rounded-xl outline-none"
+                              className="w-full text-base font-extrabold p-2.5 bg-white border border-neutral-400 text-neutral-900 placeholder-neutral-400 focus:ring-2 focus:ring-emerald-700 rounded-xl outline-none"
                             />
                           </div>
                           <div>
@@ -1422,7 +1425,7 @@ export default function AdminDashboard({
                               placeholder="150"
                               value={prodFormStock}
                               onChange={(e) => setProdFormStock(e.target.value)}
-                              className="w-full text-xs font-bold p-2.5 bg-white border border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:ring-2 focus:ring-emerald-700 rounded-xl outline-none"
+                              className="w-full text-base font-extrabold p-2.5 bg-white border border-neutral-400 text-neutral-900 placeholder-neutral-400 focus:ring-2 focus:ring-emerald-700 rounded-xl outline-none"
                             />
                           </div>
                         </div>
@@ -1448,7 +1451,7 @@ export default function AdminDashboard({
                             placeholder="Provide product descriptions or standard specs..."
                             value={prodFormDesc}
                             onChange={(e) => setProdFormDesc(e.target.value)}
-                            className="w-full text-xs font-bold p-2.5 bg-white border border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:ring-2 focus:ring-emerald-700 rounded-xl resize-none outline-none"
+                            className="w-full text-base font-extrabold p-2.5 bg-white border border-neutral-400 text-neutral-900 placeholder-neutral-400 focus:ring-2 focus:ring-emerald-700 rounded-xl resize-none outline-none"
                           />
                         </div>
 
@@ -1583,8 +1586,9 @@ export default function AdminDashboard({
                           key={o.id} 
                           onClick={() => {
                             setSelectedVerifyOrder(o);
-                            setVerifyActionPayState('Verified');
-                            setVerifyActionOrderState('Confirmed');
+                            setVerifyActionPayState(o.paymentStatus || 'Pending Verification');
+                            setVerifyActionOrderState(o.orderStatus || 'Pending');
+                            setVerifyActionShippingState(o.shippingStatus || 'Pending');
                             setAdminChallengePin('');
                             setChallengeError(null);
                           }}
@@ -1613,7 +1617,17 @@ export default function AdminDashboard({
                                     ? 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-400' 
                                     : 'bg-amber-100 text-amber-900 dark:bg-amber-955 dark:text-amber-400'
                               }`}>
-                                {o.paymentStatus || 'Pending'}
+                                Pay: {o.paymentStatus || 'Pending'}
+                              </span>
+
+                              <span className={`text-[9px] font-extrabold px-2 py-0.5 rounded-full ${
+                                o.shippingStatus === 'Delivered' 
+                                  ? 'bg-emerald-500 text-white dark:bg-emerald-900/60 dark:text-emerald-300 border border-emerald-500/20' 
+                                  : o.shippingStatus === 'Dispatched' 
+                                    ? 'bg-blue-500 text-white dark:bg-blue-900/60 dark:text-blue-300 border border-blue-500/20' 
+                                    : 'bg-amber-550 bg-amber-500 text-white dark:bg-amber-950/65 dark:text-amber-400 border border-amber-500/20'
+                              }`}>
+                                Ship: {o.shippingStatus || 'Pending'}
                               </span>
                             </div>
                           </div>
@@ -1740,6 +1754,41 @@ export default function AdminDashboard({
                           </div>
                         </div>
 
+                        {/* Shipping Status Selection Segment */}
+                        <div className="bg-slate-950 p-4 rounded-xl border border-slate-850 space-y-3">
+                          <div className="flex justify-between items-center">
+                            <span className="text-[9px] font-bold uppercase text-slate-400">Configure Delivery/Shipping State</span>
+                            <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-blue-950 border border-blue-800 text-blue-400">
+                              Active selection: {verifyActionShippingState}
+                            </span>
+                          </div>
+
+                          <div className="grid grid-cols-3 gap-2">
+                            {(['Pending', 'Dispatched', 'Delivered'] as const).map((status) => {
+                              const isActive = verifyActionShippingState === status;
+                              let activeStyles = 'bg-slate-900 text-slate-400 hover:bg-slate-800 hover:text-white border border-slate-800';
+                              if (isActive) {
+                                if (status === 'Pending') activeStyles = 'bg-amber-600 text-white ring-1 ring-amber-500 font-black';
+                                if (status === 'Dispatched') activeStyles = 'bg-blue-600 text-white ring-1 ring-blue-500 font-black';
+                                if (status === 'Delivered') activeStyles = 'bg-emerald-600 text-white ring-1 ring-emerald-500 font-black';
+                              }
+                              return (
+                                <button
+                                  key={status}
+                                  type="button"
+                                  onClick={() => setVerifyActionShippingState(status)}
+                                  className={`py-2 px-1 rounded-lg text-[9px] font-sans tracking-wider uppercase transition-all duration-150 flex items-center justify-center gap-1 cursor-pointer ${activeStyles}`}
+                                >
+                                  {status === 'Pending' && <span>⏳</span>}
+                                  {status === 'Dispatched' && <span>🚚</span>}
+                                  {status === 'Delivered' && <span>✅</span>}
+                                  <span>{status}</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+
                         {/* Audit Verification PIN input inside form */}
                         <div className="bg-slate-950 p-4 rounded-xl border border-slate-850 space-y-3">
                           <div className="flex justify-between items-center">
@@ -1758,7 +1807,7 @@ export default function AdminDashboard({
                                 value={adminChallengePin}
                                 onChange={(e) => setAdminChallengePin(e.target.value)}
                                 placeholder="Enter coordinator passcode"
-                                className="w-full text-xs font-mono font-bold p-2.5 bg-slate-900 border border-slate-750 focus:ring-2 focus:ring-emerald-500 rounded-lg text-white placeholder-slate-650 outline-none"
+                                className="w-full text-base font-mono font-black p-2.5 bg-slate-900 border border-slate-600 focus:ring-2 focus:ring-emerald-500 rounded-lg text-white placeholder-slate-650 outline-none"
                               />
                             </div>
                             
@@ -1780,15 +1829,38 @@ export default function AdminDashboard({
                         </div>
 
                         {/* Layout details actions & printer option */}
-                        <div className="pt-3 border-t border-slate-800 flex justify-between items-center text-xs">
-                          <button
-                            type="button"
-                            onClick={() => handlePrintOrder(selectedVerifyOrder)}
-                            className="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-1.5 px-3 rounded text-[10px] flex items-center gap-1.5 cursor-pointer"
-                          >
-                            <Printer size={12} className="text-emerald-400" />
-                            <span>Print Summary</span>
-                          </button>
+                        <div className="pt-3 border-t border-slate-800 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between text-xs">
+                          <div className="flex flex-wrap gap-2">
+                            <button
+                              type="button"
+                              onClick={() => handlePrintOrder(selectedVerifyOrder)}
+                              className="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-1.5 px-3 rounded text-[10px] flex items-center gap-1.5 cursor-pointer"
+                            >
+                              <Printer size={12} className="text-emerald-400" />
+                              <span>Print Summary</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const cleanPhone = selectedVerifyOrder.customerPhone.replace(/\D/g, '');
+                                const formattedPhone = cleanPhone.startsWith('0') && cleanPhone.length === 11 
+                                  ? '234' + cleanPhone.substring(1) 
+                                  : cleanPhone;
+                                
+                                const baseLink = `${window.location.origin}/#track?ref=${selectedVerifyOrder.id}&email=${encodeURIComponent(selectedVerifyOrder.customerEmail)}`;
+                                
+                                const messageText = `Hello *${selectedVerifyOrder.customerName}*,\n\nThank you for choosing Mercy Farmstead! 🌾\nHere is the summary of your livestock reservation under reference token *${selectedVerifyOrder.id}*:\n\n• *Product:* ${selectedVerifyOrder.productName}\n• *Quantity:* ${selectedVerifyOrder.quantity} units\n• *Total Amount:* ₦${selectedVerifyOrder.totalPrice.toLocaleString()}\n• *Payment Bank:* ${selectedVerifyOrder.paymentBank}\n• *Payment Status:* ${verifyActionPayState || selectedVerifyOrder.paymentStatus}\n• *Shipping Status:* ${verifyActionShippingState || selectedVerifyOrder.shippingStatus || 'Pending'}\n\nYou can live-track your verification status and delivery stages using this direct tracking portal link:\n${baseLink}\n\nBest regards,\nThe Mercy Farmstead Team 🤠`;
+                                
+                                const whatsappUrl = `https://api.whatsapp.com/send?phone=${formattedPhone}&text=${encodeURIComponent(messageText)}`;
+                                window.open(whatsappUrl, '_blank');
+                              }}
+                              className="bg-[#25D366] hover:bg-[#20ba5a] text-white font-bold py-1.5 px-3 rounded text-[10px] flex items-center gap-1.5 cursor-pointer transition-colors"
+                            >
+                              <MessageSquare size={12} className="text-white" />
+                              <span>Open in WhatsApp</span>
+                            </button>
+                          </div>
 
                           <div className="flex gap-2">
                             <button

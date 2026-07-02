@@ -107,7 +107,7 @@ export default function AboutUs() {
                 </blockquote>
 
                 <p className="text-xs text-emerald-200 leading-relaxed">
-                  We maintain premium biosecurity farmstead coordinates at No25, TEMIDIRE AJAGBA WAKAJAYE, IBADAN, beside Boluwatife Maternity, Oyo State, ensuring maximum safety, premium organic development, and optimal vaccination standards for all farm stock. Approved Corporate RC No: 9289785.
+                  We maintain premium biosecurity farmstead coordinates at BESIDE BOLUWATIFE MATERNITY, NO25 TEMIDIRE AJAGBA WAKAJAYE, IBADAN 200113 OYO STATE, ensuring maximum safety, premium organic development, and optimal vaccination standards for all farm stock. Approved Corporate RC No: 9289785.
                 </p>
               </div>
             </div>

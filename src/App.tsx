@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Leaf, ShoppingCart, Menu, X, Clock, HelpCircle, Phone, MapPin, 
-  Trash2, ArrowRight, ShieldCheck, Heart, Megaphone, Lock, ArrowLeftRight, Bell,
+  Trash2, ArrowRight, ShieldCheck, Heart, Megaphone, Lock, ArrowLeftRight, Bell, CheckCircle2,
   Sun, Moon
 } from 'lucide-react';
 
@@ -13,6 +13,7 @@ import Products from './components/Products';
 import Booking from './components/Booking';
 import Contact from './components/Contact';
 import Chatbot from './components/Chatbot';
+import TrackOrder from './components/TrackOrder';
 import companyLogo from './assets/images/mercy_farms_logo_1779313335439.png';
 
 // Schema Interfaces
@@ -56,17 +57,61 @@ export default function App() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
 
+  // Synchronize cart with current live products list. If a product is deleted from the backend, remove it from the cart to avoid crashes or checkout errors.
+  useEffect(() => {
+    if (products.length > 0 && cart.length > 0) {
+      const updatedCart = cart.filter(item => products.some(p => p.id === item.product.id));
+      if (updatedCart.length !== cart.length) {
+        setCart(updatedCart);
+        localStorage.setItem('mercy_farmstead_cart', JSON.stringify(updatedCart));
+      }
+    }
+  }, [products]);
+
   // Direct checkout bypass
   const [directBookingItem, setDirectBookingItem] = useState<{ product: Product; quantity: number } | null>(null);
 
   // Order successes overlay
   const [confirmedOrder, setConfirmedOrder] = useState<Order | null>(null);
+  const [isPaymentVerified, setIsPaymentVerified] = useState(false);
+
+  // Reset verification state when a new order is confirmed
+  useEffect(() => {
+    if (confirmedOrder) {
+      setIsPaymentVerified(false);
+    }
+  }, [confirmedOrder]);
+
+  // Poll order verification status when a confirmedOrder is open
+  useEffect(() => {
+    if (!confirmedOrder || isPaymentVerified) return;
+
+    const pollInterval = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/orders/track?reference=${confirmedOrder.id}&email=${encodeURIComponent(confirmedOrder.customerEmail)}`);
+        if (res.ok) {
+          const updatedOrder = await res.json();
+          if (updatedOrder.paymentStatus === 'Verified') {
+            setIsPaymentVerified(true);
+            // Save verified order tracking to localStorage immediately so TrackOrder can pick it up without prompting
+            localStorage.setItem('mercy_last_tracked_ref', updatedOrder.id.toUpperCase());
+            localStorage.setItem('mercy_last_tracked_email', updatedOrder.customerEmail);
+          }
+        }
+      } catch (err) {
+        // Silent block - returns 403 while payment status !== 'Verified'
+      }
+    }, 2500);
+
+    return () => clearInterval(pollInterval);
+  }, [confirmedOrder, isPaymentVerified]);
 
   // Initialize and track hash navigation routing
   useEffect(() => {
     const handleHashCheck = () => {
-      const hash = window.location.hash.replace('#', '');
-      const validTabs = ['home', 'about', 'products', 'booking', 'contact'];
+      const fullHash = window.location.hash.replace('#', '');
+      const hash = fullHash.split('?')[0];
+      const validTabs = ['home', 'about', 'products', 'booking', 'contact', 'track'];
       if (hash && validTabs.includes(hash)) {
         setActiveTab(hash);
         // Scroll to top
@@ -95,9 +140,11 @@ export default function App() {
     fetchAnnouncements();
     fetchNotifications();
 
-    // Setup polling for live status notifications
+    // Setup polling for live status notifications, products, and announcements
     const notifTimer = setInterval(() => {
       fetchNotifications();
+      fetchProductsListing(true);
+      fetchAnnouncements();
     }, 8000);
 
     return () => {
@@ -151,8 +198,8 @@ export default function App() {
     }
   };
 
-  const fetchProductsListing = async () => {
-    setIsLoadingProducts(true);
+  const fetchProductsListing = async (silent = false) => {
+    if (!silent) setIsLoadingProducts(true);
     try {
       const res = await fetch('/api/products');
       if (res.ok) {
@@ -161,7 +208,7 @@ export default function App() {
     } catch (error) {
       console.error('Network boundary blocked product sync:', error);
     } finally {
-      setIsLoadingProducts(false);
+      if (!silent) setIsLoadingProducts(false);
     }
   };
 
@@ -231,8 +278,8 @@ export default function App() {
   const cartTotalItemCount = cart.reduce((acc, item) => acc + item.quantity, 0);
 
   // Router dispatcher
-  const navigateTab = (tab: string) => {
-    window.location.hash = `#${tab}`;
+  const navigateTab = (tab: string, queryStr?: string) => {
+    window.location.hash = queryStr ? `#${tab}?${queryStr}` : `#${tab}`;
     setActiveTab(tab);
     setIsMobileMenuOpen(false);
   };
@@ -280,9 +327,9 @@ export default function App() {
 
             {/* Desktop Navigation Links */}
             <nav className="hidden md:flex items-center gap-1" id="header-desktop-nav">
-              {['home', 'about', 'products', 'booking', 'contact'].map((tab) => {
+              {['home', 'about', 'products', 'booking', 'track', 'contact'].map((tab) => {
                 const active = activeTab === tab;
-                const label = tab === 'products' ? 'Catalog' : tab === 'booking' ? 'Booking' : tab.charAt(0).toUpperCase() + tab.slice(1);
+                const label = tab === 'products' ? 'Catalog' : tab === 'booking' ? 'Booking' : tab === 'track' ? 'Track Order' : tab.charAt(0).toUpperCase() + tab.slice(1);
                 return (
                   <button
                     key={tab}
@@ -367,9 +414,9 @@ export default function App() {
               className="md:hidden border-t border-neutral-100 bg-white shadow-lg overflow-hidden shrink-0"
             >
               <div className="p-4 space-y-2">
-                {['home', 'about', 'products', 'booking', 'contact'].map((tab) => {
+                {['home', 'about', 'products', 'booking', 'track', 'contact'].map((tab) => {
                   const active = activeTab === tab;
-                  const label = tab === 'products' ? 'Catalog' : tab.charAt(0).toUpperCase() + tab.slice(1);
+                  const label = tab === 'products' ? 'Catalog' : tab === 'booking' ? 'Booking' : tab === 'track' ? 'Track Order' : tab.charAt(0).toUpperCase() + tab.slice(1);
                   return (
                     <button
                       key={tab}
@@ -403,44 +450,116 @@ export default function App() {
                 className="bg-white p-8 rounded-3xl border border-neutral-100 max-w-lg w-full shadow-2xl relative text-center"
                 id="booking-success-modal"
               >
-                <div className="w-16 h-16 rounded-full bg-emerald-100 border border-emerald-300 text-emerald-700 flex items-center justify-center mx-auto mb-4">
-                  <ShieldCheck size={32} />
-                </div>
-                
-                <h3 className="text-xl font-bold font-sans text-neutral-900">Livestock Reservation Submitted</h3>
-                <p className="text-xs text-neutral-500 mt-1 uppercase tracking-widest font-bold">Reference Token: {confirmedOrder.id}</p>
-                
-                <p className="text-xs text-neutral-600 mt-4 leading-relaxed">
-                  Thank you, <strong>{confirmedOrder.customerName}</strong>! We have logged your proof screenshot for verification. Outbound alerts have requested a manager check on your payment of <strong>₦{confirmedOrder.totalPrice.toLocaleString()}</strong>.
-                </p>
+                {!isPaymentVerified ? (
+                  <>
+                    <div className="w-16 h-16 rounded-full bg-amber-100 border border-amber-300 text-amber-700 flex items-center justify-center mx-auto mb-4 animate-bounce">
+                      <ShieldCheck size={32} />
+                    </div>
+                    
+                    <h3 className="text-xl font-bold font-sans text-neutral-900">Livestock Reservation Received</h3>
+                    <p className="text-xs text-rose-600 mt-1.5 uppercase tracking-widest font-black bg-rose-50 px-3 py-1 rounded-full inline-block border border-rose-100">
+                      Awaiting Admin Payment Verification ⏳
+                    </p>
+                    
+                    <p className="text-xs text-neutral-600 mt-4 leading-relaxed">
+                      Thank you, <strong>{confirmedOrder.customerName}</strong>! We have logged your proof screenshot for verification.
+                      <span className="block mt-2 font-semibold text-neutral-800">
+                        ⚠️ CRITICAL PROTOCOL: The administrator must verify your payment first before your official Tracking Reference Code is activated or livestock can be allocated.
+                      </span>
+                    </p>
 
-                <div className="my-6 p-4 rounded-xl bg-slate-50 border border-slate-100 text-xs font-mono space-y-1.5 text-left">
-                  <div className="font-bold text-slate-800 text-center border-b border-slate-200 pb-1.5 mb-1 text-[10px] uppercase">WIRE CONFIRMATION TARGET</div>
-                  <div>Bank Selected: {confirmedOrder.paymentBank}</div>
-                  <div>Account: {confirmedOrder.paymentBank === 'Moniepoint MFB' ? '6213477162' : '1030248864'}</div>
-                  <div>Recipient: Mercy Farmstead</div>
-                </div>
+                    <div className="mt-4 p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 text-neutral-900 dark:text-stone-105 flex flex-col items-center gap-2.5 animate-pulse">
+                      <div className="text-[11px] font-medium leading-relaxed">
+                        🌟 <strong>How to get your tracking number?</strong>
+                        <p className="mt-1 text-neutral-700">Once a manager checks the <strong>₦{confirmedOrder.totalPrice.toLocaleString()}</strong> manual bank wire receipt post on our ledger, your active tracking details will be released and dispatched to: <strong className="text-emerald-800">{confirmedOrder.customerEmail}</strong>.</p>
+                      </div>
+                    </div>
+                    
+                    <p className="text-[10px] text-neutral-400 mt-2 italic">
+                      Reference Token: [Hidden until payment verified by Admin]
+                    </p>
 
-                <div className="grid grid-cols-2 gap-2 mt-6">
-                  <button
-                    onClick={() => {
-                      setConfirmedOrder(null);
-                      navigateTab('contact');
-                    }}
-                    className="py-3 px-4 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-neutral-700 text-xs font-bold transition-colors cursor-pointer"
-                  >
-                    View Coordinates map
-                  </button>
-                  <button
-                    onClick={() => {
-                      setConfirmedOrder(null);
-                      navigateTab('products');
-                    }}
-                    className="py-3 px-4 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold transition-all shadow-md cursor-pointer"
-                  >
-                    Continue cataloging
-                  </button>
-                </div>
+                    <div className="my-4 p-4 rounded-xl bg-slate-50 border border-slate-100 text-xs font-mono space-y-1.5 text-left">
+                      <div className="font-bold text-slate-800 text-center border-b border-slate-200 pb-1.5 mb-1 text-[10px] uppercase">WIRE CONFIRMATION TARGET</div>
+                      <div>Bank Selected: {confirmedOrder.paymentBank}</div>
+                      <div>Account: {confirmedOrder.paymentBank === 'Moniepoint MFB' ? '6213477162' : '1030248864'}</div>
+                      <div>Recipient: Mercy Farmstead</div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 mt-6">
+                      <button
+                        onClick={() => {
+                          setConfirmedOrder(null);
+                          navigateTab('contact');
+                        }}
+                        className="py-3 px-4 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-neutral-700 text-xs font-bold transition-colors cursor-pointer"
+                      >
+                        View Coordinates map
+                      </button>
+                      <button
+                        onClick={() => {
+                          setConfirmedOrder(null);
+                          navigateTab('products');
+                        }}
+                        className="py-3 px-4 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold transition-all shadow-md cursor-pointer"
+                      >
+                        Continue cataloging
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="w-16 h-16 rounded-full bg-emerald-100 border-2 border-emerald-500 text-emerald-800 flex items-center justify-center mx-auto mb-4 scale-110 shadow-lg animate-bounce animate-none">
+                      <CheckCircle2 size={36} className="text-emerald-600 font-extrabold animate-pulse" />
+                    </div>
+
+                    <h3 className="text-xl font-bold font-sans text-neutral-900">Payment Approved & Verified! 🎉</h3>
+                    <p className="text-xs text-emerald-800 mt-1.5 uppercase tracking-widest font-black bg-emerald-50 px-3 py-1 rounded-full inline-block border border-emerald-250">
+                      Payment Verified ✓ Active
+                    </p>
+
+                    <p className="text-xs text-neutral-600 mt-4 leading-relaxed">
+                      Excellent news, <strong>{confirmedOrder.customerName}</strong>! Your manual bank wire payment of <strong>₦{confirmedOrder.totalPrice.toLocaleString()}</strong> has been audited and fully verified by our finance department.
+                      <span className="block mt-2 font-bold text-emerald-700">
+                        Success! Your high-grade livestock units have been locked under your allocation file.
+                      </span>
+                    </p>
+
+                    <div className="mt-4 p-4 rounded-2xl bg-emerald-50 border border-emerald-100 text-neutral-900 flex flex-col items-center gap-1">
+                      <span className="text-[9px] font-black uppercase text-emerald-800 tracking-wider">OFFICIAL TRACKING TOKEN</span>
+                      <span className="text-lg font-black font-mono tracking-widest text-emerald-950 bg-white/60 rounded-lg px-4 py-1.5 border border-emerald-100 select-all block my-1">
+                        {confirmedOrder.id}
+                      </span>
+                      <p className="text-[10px] text-neutral-500 leading-normal mt-1">
+                        Use this token to monitor manual dispatch clearances and scheduled collection timings inside our Ibadan/Oyo outposts.
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 mt-6">
+                      <button
+                        onClick={() => {
+                          const trigger = document.getElementById('chat-icon-trigger-btn') || document.getElementById('chatbot-toggle-circle') || document.getElementById('chatbot-action-bubble');
+                          if (trigger) trigger.click();
+                        }}
+                        className="py-3 px-4 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-neutral-700 text-xs font-bold transition-colors cursor-pointer"
+                      >
+                        Ask manager on chat
+                      </button>
+                      <button
+                        onClick={() => {
+                          localStorage.setItem('mercy_last_tracked_ref', confirmedOrder.id.toUpperCase());
+                          localStorage.setItem('mercy_last_tracked_email', confirmedOrder.customerEmail);
+                          navigateTab('track', `ref=${confirmedOrder.id}&email=${encodeURIComponent(confirmedOrder.customerEmail)}`);
+                          setConfirmedOrder(null);
+                          setIsPaymentVerified(false);
+                        }}
+                        className="py-3 px-4 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold transition-all shadow-md cursor-pointer animate-pulse"
+                      >
+                        Track reservation status & Receipt →
+                      </button>
+                    </div>
+                  </>
+                )}
               </motion.div>
             </div>
           )}
@@ -514,6 +633,15 @@ export default function App() {
         )}
 
         {activeTab === 'contact' && <Contact />}
+
+        {activeTab === 'track' && (
+          <TrackOrder 
+            onOpenChatWithAdmin={() => {
+              const bubble = document.getElementById('chatbot-action-bubble');
+              if (bubble) bubble.click();
+            }} 
+          />
+        )}
 
       </main>
 
@@ -691,7 +819,7 @@ export default function App() {
                       localStorage.setItem('mercy_farmstead_cemail', val);
                       fetchNotifications();
                     }}
-                    className="flex-grow text-xs px-3 py-2 bg-white rounded-lg border border-amber-200 focus:outline-none focus:border-amber-600 font-mono"
+                    className="flex-grow text-base font-extrabold px-3 py-2 bg-white rounded-lg border border-amber-300 focus:outline-none focus:border-amber-600 font-mono text-neutral-900"
                   />
                   <button
                     onClick={() => {
@@ -796,11 +924,19 @@ export default function App() {
           {/* Location details */}
           <div className="space-y-2">
             <div className="text-[10px] font-black uppercase text-neutral-400 tracking-wider">Corporate farmland location</div>
-            <div className="space-y-1.5 text-neutral-605 text-neutral-650">
-              <p className="flex items-start gap-1">
-                <MapPin size={13} className="text-emerald-700 shrink-0 mt-0.5" />
-                <span>No25, TEMIDIRE AJAGBA WAKAJAYE, IBADAN, BESIDE BOLUWATIFE MATERNITY, OYO STATE, NIGERIA.</span>
-              </p>
+            <div className="space-y-1.5 text-neutral-600 dark:text-stone-400">
+              <a 
+                href="https://maps.google.com/?q=Boluwatife+Maternity,+Wakajaye,+Ibadan,+Oyo+State,+Nigeria" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="flex items-start gap-1 p-0.5 rounded hover:text-emerald-800 dark:hover:text-emerald-400 transition-colors group"
+                title="Pinpoint Boluwatife Maternity on Google Maps"
+              >
+                <MapPin size={13} className="text-emerald-700 shrink-0 mt-0.5 group-hover:scale-110 transition-transform" />
+                <span className="text-xs group-hover:underline leading-relaxed font-semibold">
+                  BESIDE BOLUWATIFE MATERNITY, NO25 TEMIDIRE AJAGBA WAKAJAYE, IBADAN 200113, OYO STATE, NIGERIA.
+                </span>
+              </a>
             </div>
           </div>
 

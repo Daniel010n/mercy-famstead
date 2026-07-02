@@ -291,7 +291,7 @@ export default function Booking({
                     placeholder="e.g. Kolawole Adebiyi"
                     value={customerName}
                     onChange={(e) => setCustomerName(e.target.value)}
-                    className="w-full text-xs p-3 bg-neutral-50 hover:bg-neutral-100/50 focus:bg-white border-0 focus:ring-2 focus:ring-emerald-700 rounded-xl transition-all"
+                    className="w-full text-base font-extrabold p-3 bg-white border border-neutral-300 focus:bg-white focus:ring-2 focus:ring-emerald-700 rounded-xl transition-all text-neutral-900"
                   />
                 </div>
 
@@ -305,7 +305,7 @@ export default function Booking({
                     placeholder="e.g. 08012345678"
                     value={customerPhone}
                     onChange={(e) => setCustomerPhone(e.target.value)}
-                    className="w-full text-xs p-3 bg-neutral-50 hover:bg-neutral-100/50 focus:bg-white border-0 focus:ring-2 focus:ring-emerald-700 rounded-xl transition-all"
+                    className="w-full text-base font-extrabold p-3 bg-white border border-neutral-300 focus:bg-white focus:ring-2 focus:ring-emerald-700 rounded-xl transition-all text-neutral-900"
                   />
                 </div>
               </div>
@@ -320,7 +320,7 @@ export default function Booking({
                   placeholder="e.g. customer@gmail.com"
                   value={customerEmail}
                   onChange={(e) => setCustomerEmail(e.target.value)}
-                  className="w-full text-xs p-3 bg-neutral-50 hover:bg-neutral-100/50 focus:bg-white border-0 focus:ring-2 focus:ring-emerald-700 rounded-xl transition-all"
+                  className="w-full text-base font-extrabold p-3 bg-white border border-neutral-300 focus:bg-white focus:ring-2 focus:ring-emerald-700 rounded-xl transition-all text-neutral-900"
                 />
               </div>
 
@@ -333,7 +333,7 @@ export default function Booking({
                   placeholder="e.g. Ring Road, Ibadan, Oyo State"
                   value={customerAddress}
                   onChange={(e) => setCustomerAddress(e.target.value)}
-                  className="w-full text-xs p-3 bg-neutral-50 hover:bg-neutral-100/50 focus:bg-white border-0 focus:ring-2 focus:ring-emerald-700 rounded-xl transition-all"
+                  className="w-full text-base font-extrabold p-3 bg-white border border-neutral-300 focus:bg-white focus:ring-2 focus:ring-emerald-700 rounded-xl transition-all text-neutral-900"
                 />
               </div>
 
@@ -346,7 +346,7 @@ export default function Booking({
                   placeholder="Write any vaccine, feeding inquiries or specific delivery times..."
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  className="w-full text-xs p-3 bg-neutral-50 hover:bg-neutral-100/50 focus:bg-white border-0 focus:ring-2 focus:ring-emerald-700 rounded-xl transition-all resize-none"
+                  className="w-full text-base font-extrabold p-3 bg-white border border-neutral-300 focus:bg-white focus:ring-2 focus:ring-emerald-700 rounded-xl transition-all resize-none text-neutral-900"
                 />
               </div>
             </div>

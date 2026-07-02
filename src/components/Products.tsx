@@ -201,7 +201,7 @@ export default function Products({ products, isLoading, onAddToCart, onInstantBo
                             type="number"
                             value={qty}
                             onChange={(e) => handleQtyChange(prod.id, Number(e.target.value), prod.stock)}
-                            className="w-10 text-center bg-transparent border-0 font-bold text-sm focus:ring-0 text-emerald-950 p-0"
+                            className="w-12 text-center bg-transparent border-0 font-extrabold text-base focus:ring-0 text-neutral-900 p-0"
                           />
                           <button
                             onClick={() => handleQtyChange(prod.id, qty + 1, prod.stock)}
